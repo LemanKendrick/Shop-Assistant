@@ -180,6 +180,111 @@
   }
   .link-btn:hover{color:var(--chalk);}
 
+  .backup-bar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    margin-bottom:14px;
+    background:var(--surface-raised);
+    border:1px solid var(--line);
+    border-radius:2px;
+  }
+  .backup-bar-label{
+    font-family:'Oswald',sans-serif;
+    font-size:11px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--concrete);
+    margin-right:4px;
+  }
+  .backup-bar button{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.02em;
+    background:var(--surface);
+    border:1px solid var(--line);
+    color:var(--chalk);
+    padding:7px 12px;
+    border-radius:2px;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .backup-bar button:hover{color:var(--orange);border-color:var(--orange);}
+  .backup-status{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--concrete);
+  }
+  .backup-confirm{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    margin-bottom:14px;
+    background:var(--orange-dim);
+    border:1px solid var(--orange);
+    border-radius:2px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--chalk);
+  }
+  .backup-confirm button{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    padding:6px 12px;
+    border-radius:2px;
+    cursor:pointer;
+    border:1px solid var(--chalk);
+    background:transparent;
+    color:var(--chalk);
+  }
+  .backup-confirm button:hover{background:var(--chalk);color:var(--asphalt);}
+
+  .backup-textpanel{
+    padding:12px 14px;
+    margin-bottom:14px;
+    background:var(--surface-raised);
+    border:1px solid var(--line);
+    border-radius:2px;
+  }
+  .backup-textpanel-label{
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:12px;
+    color:var(--concrete);
+    margin-bottom:8px;
+    line-height:1.4;
+  }
+  .backup-textpanel textarea{
+    width:100%;
+    background:var(--asphalt);
+    border:1px solid var(--line);
+    color:var(--chalk);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    padding:8px;
+    border-radius:2px;
+    resize:vertical;
+  }
+  .backup-textpanel-actions{
+    display:flex;
+    gap:8px;
+    margin-top:8px;
+  }
+  .backup-textpanel-actions button{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    padding:7px 12px;
+    border-radius:2px;
+    cursor:pointer;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--chalk);
+  }
+  .backup-textpanel-actions button:hover{color:var(--orange);border-color:var(--orange);}
+
   .blade-manager{
     display:none;
     margin-top:12px;
@@ -776,6 +881,36 @@
     <h1>Shop Assistant<span>.</span></h1>
   </header>
   <div class="tape"></div>
+
+  <div class="backup-bar">
+    <span class="backup-bar-label">Data Backup</span>
+    <button type="button" id="backup-export-btn">Export All Data</button>
+    <button type="button" id="backup-import-btn">Import Data</button>
+    <button type="button" id="backup-paste-btn">Paste Text Instead</button>
+    <input type="file" id="backup-import-file" accept=".json" style="display:none;">
+    <span class="backup-status" id="backup-status"></span>
+  </div>
+  <div class="backup-confirm" id="backup-confirm" style="display:none;">
+    <span id="backup-confirm-text"></span>
+    <button type="button" id="backup-confirm-btn">Confirm Import</button>
+    <button type="button" id="backup-cancel-btn">Cancel</button>
+  </div>
+  <div class="backup-textpanel" id="backup-export-panel" style="display:none;">
+    <div class="backup-textpanel-label">Your data, as text — use this if the file download above didn't work (common on some mobile browsers/apps). Tap into the box, select all, copy, then paste it into a note, email, or file on your other device.</div>
+    <textarea id="backup-export-text" readonly rows="6"></textarea>
+    <div class="backup-textpanel-actions">
+      <button type="button" id="backup-copy-btn">Copy to Clipboard</button>
+      <button type="button" id="backup-export-panel-close">Close</button>
+    </div>
+  </div>
+  <div class="backup-textpanel" id="backup-import-panel" style="display:none;">
+    <div class="backup-textpanel-label">Or paste backup text directly here instead of picking a file:</div>
+    <textarea id="backup-import-text" placeholder="Paste exported backup text here" rows="6"></textarea>
+    <div class="backup-textpanel-actions">
+      <button type="button" id="backup-import-text-btn">Import From Pasted Text</button>
+      <button type="button" id="backup-import-panel-close">Close</button>
+    </div>
+  </div>
 
   <nav class="tabs">
     <button class="active" data-tab="saw"><span class="num">01</span>Saw Cuts</button>
@@ -3965,6 +4100,24 @@ const persist = (function(){
         return { key, value, shared: !!shared };
       }
       return { key, value, shared: !!shared };
+    },
+    async list(prefix, shared){
+      prefix = prefix || '';
+      if(mode==='window.storage'){
+        try{
+          return await window.storage.list(prefix, shared);
+        }catch(e){
+          return { keys: Object.keys(mem).filter(k=>k.startsWith(prefix)) };
+        }
+      }
+      if(mode==='localStorage'){
+        try{
+          return { keys: Object.keys(localStorage).filter(k=>k.startsWith(prefix)) };
+        }catch(e){
+          return { keys: Object.keys(mem).filter(k=>k.startsWith(prefix)) };
+        }
+      }
+      return { keys: Object.keys(mem).filter(k=>k.startsWith(prefix)) };
     }
   };
 })();
@@ -4034,6 +4187,146 @@ setupCardSummary('data', 'Data & Information');
 setupCardSummary('paint', 'Paint & Chemical Mixes');
 
 const $ = id => document.getElementById(id);
+
+// ---- Data Backup: Export / Import all saved data ----
+// Lets a person carry their saved blades, jigs, layouts, etc. between
+// devices by hand — download everything to a file on one device, then
+// load that file back in on another. Works regardless of hosting mode
+// (Claude artifact or standalone), since it goes through the same
+// `persist` layer every card already saves through.
+let backupPendingImport = null;
+
+async function backupCollectAll(){
+  const result = await persist.list('', false);
+  const keys = (result && result.keys) || [];
+  const data = {};
+  for(const key of keys){
+    try{
+      const res = await persist.get(key, false);
+      data[key] = res.value;
+    }catch(e){ /* skip a key that can't be read */ }
+  }
+  return data;
+}
+
+$('backup-export-btn').addEventListener('click', async ()=>{
+  const statusEl = $('backup-status');
+  statusEl.textContent = 'Collecting data…';
+  try{
+    const data = await backupCollectAll();
+    const keyCount = Object.keys(data).length;
+    if(keyCount===0){
+      statusEl.textContent = 'Nothing saved yet to export.';
+      return;
+    }
+    const payload = { app:'Shop Assistant', exportedAt: new Date().toISOString(), data };
+    const jsonText = JSON.stringify(payload, null, 2);
+
+    // always show the text fallback — guaranteed to work regardless of
+    // whether file downloads work in this browser/app, which is not
+    // reliable in every mobile context
+    $('backup-export-text').value = jsonText;
+    $('backup-export-panel').style.display = '';
+
+    // best-effort automatic file download, in addition to the text fallback
+    try{
+      const blob = new Blob([jsonText], { type:'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'shop-assistant-backup-' + new Date().toISOString().slice(0,10) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }catch(e){ /* text fallback above still covers this */ }
+
+    statusEl.textContent = 'Exported ' + keyCount + ' saved item' + (keyCount===1?'':'s') + '. If a file didn\'t download, use the text box below instead.';
+  }catch(e){
+    statusEl.textContent = 'Export failed: ' + (e && e.message ? e.message : 'unknown error');
+  }
+});
+
+$('backup-copy-btn').addEventListener('click', async ()=>{
+  const text = $('backup-export-text').value;
+  try{
+    await navigator.clipboard.writeText(text);
+    $('backup-status').textContent = 'Copied to clipboard.';
+  }catch(e){
+    // clipboard API may be unavailable/blocked — fall back to select-for-manual-copy
+    const ta = $('backup-export-text');
+    ta.focus();
+    ta.select();
+    $('backup-status').textContent = 'Selected the text — copy it manually (your browser blocked automatic copy).';
+  }
+});
+
+$('backup-export-panel-close').addEventListener('click', ()=>{ $('backup-export-panel').style.display = 'none'; });
+
+$('backup-import-btn').addEventListener('click', ()=>{ $('backup-import-file').click(); });
+
+$('backup-paste-btn').addEventListener('click', ()=>{
+  $('backup-import-panel').style.display = $('backup-import-panel').style.display==='none' ? '' : 'none';
+});
+$('backup-import-panel-close').addEventListener('click', ()=>{ $('backup-import-panel').style.display = 'none'; });
+
+// shared by both the file-based and paste-based import paths
+function backupStageImport(rawText){
+  try{
+    const parsed = JSON.parse(rawText);
+    if(!parsed || typeof parsed.data !== 'object' || !parsed.data){
+      $('backup-status').textContent = "That doesn't look like a Shop Assistant backup.";
+      return;
+    }
+    backupPendingImport = parsed.data;
+    const keyCount = Object.keys(parsed.data).length;
+    const whenStr = parsed.exportedAt ? (' (exported ' + new Date(parsed.exportedAt).toLocaleString() + ')') : '';
+    $('backup-confirm-text').textContent = 'This will overwrite existing saved data on this device with ' + keyCount + ' item' + (keyCount===1?'':'s') + ' from the backup' + whenStr + '.';
+    $('backup-confirm').style.display = '';
+    $('backup-status').textContent = '';
+  }catch(e){
+    $('backup-status').textContent = "Could not read that — is it a valid backup?";
+  }
+}
+
+$('backup-import-file').addEventListener('change', ()=>{
+  const file = $('backup-import-file').files[0];
+  $('backup-import-file').value = ''; // allow re-selecting the same file later
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{ backupStageImport(reader.result); };
+  reader.readAsText(file);
+});
+
+$('backup-import-text-btn').addEventListener('click', ()=>{
+  const text = $('backup-import-text').value.trim();
+  if(!text){ $('backup-status').textContent = 'Paste your backup text first.'; return; }
+  backupStageImport(text);
+});
+
+$('backup-confirm-btn').addEventListener('click', async ()=>{
+  if(!backupPendingImport) return;
+  $('backup-confirm').style.display = 'none';
+  $('backup-import-panel').style.display = 'none';
+  $('backup-status').textContent = 'Importing…';
+  try{
+    const entries = Object.entries(backupPendingImport);
+    for(const [key, value] of entries){
+      await persist.set(key, value, false);
+    }
+    backupPendingImport = null;
+    $('backup-status').textContent = 'Imported ' + entries.length + ' item' + (entries.length===1?'':'s') + ' — reloading… (if the page doesn\'t refresh on its own, refresh it manually to see the imported data)';
+    setTimeout(()=>{ location.reload(); }, 900);
+  }catch(e){
+    $('backup-status').textContent = 'Import failed: ' + (e && e.message ? e.message : 'unknown error');
+  }
+});
+
+$('backup-cancel-btn').addEventListener('click', ()=>{
+  backupPendingImport = null;
+  $('backup-confirm').style.display = 'none';
+  $('backup-status').textContent = '';
+});
 const fmt = (n, d=2) => isFinite(n) ? n.toLocaleString(undefined,{maximumFractionDigits:d, minimumFractionDigits:0}) : '–';
 const deg = r => r * (180/Math.PI);
 const rad = d => d * (Math.PI/180);
