@@ -285,6 +285,57 @@
   }
   .backup-textpanel-actions button:hover{color:var(--orange);border-color:var(--orange);}
 
+  .color-picker-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:9px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .color-picker-row:last-child{border-bottom:none;}
+  .color-picker-info{flex:1;}
+  .color-picker-name{
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    color:var(--chalk);
+  }
+  .color-picker-desc{
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:11px;
+    color:var(--concrete);
+    margin-top:2px;
+  }
+  .color-picker-row input[type=color]{
+    width:44px;
+    height:32px;
+    padding:0;
+    border:1px solid var(--line);
+    border-radius:2px;
+    background:none;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .preset-swatch{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    padding:8px;
+    background:var(--surface-raised);
+    border:1px solid var(--line);
+    border-radius:2px;
+    cursor:pointer;
+    min-width:84px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    color:var(--chalk);
+    transition:border-color .15s ease;
+  }
+  .preset-swatch:hover{border-color:var(--orange);}
+  .preset-swatch-dots{display:flex;gap:3px;}
+  .preset-swatch-dot{width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.15);}
+
   .blade-manager{
     display:none;
     margin-top:12px;
@@ -921,6 +972,7 @@
     <button data-tab="misc"><span class="num">06</span>Calculators</button>
     <button data-tab="data"><span class="num">07</span>Data &amp; Information</button>
     <button data-tab="paint"><span class="num">08</span>Paint &amp; Chemical Mixes</button>
+    <button data-tab="colors"><span class="num">09</span>Colors</button>
   </nav>
 
   <!-- SAW CUTS -->
@@ -4009,6 +4061,26 @@
     </div>
   </section>
 
+  <!-- COLORS -->
+  <section class="panel" id="colors">
+    <div class="grid">
+
+      <div class="card" style="grid-column:1/-1;">
+        <h3>Colors</h3>
+        <p class="desc">Change the app's color scheme. Your choice is saved automatically and applies everywhere — cards, buttons, diagrams, everything.</p>
+
+        <label>Presets</label>
+        <div class="row-3" id="color-presets" style="flex-wrap:wrap;"></div>
+
+        <div class="section-divider">Custom Colors</div>
+        <div id="color-pickers"></div>
+
+        <button type="button" id="color-reset-btn" class="link-btn" style="margin-top:14px;">Reset to Default</button>
+      </div>
+
+    </div>
+  </section>
+
   <footer>SHOP ASSISTANT — FIELD REFERENCE, VERIFY AGAINST PROJECT SPECS</footer>
 </div>
 
@@ -4327,6 +4399,135 @@ $('backup-cancel-btn').addEventListener('click', ()=>{
   $('backup-confirm').style.display = 'none';
   $('backup-status').textContent = '';
 });
+
+// ---- Colors: user-customizable palette ----
+// Every color in the app is driven by these CSS custom properties on :root
+// (var(--asphalt), var(--orange), etc.) — changing their values here updates
+// the whole app consistently without touching any other CSS. The palette is
+// saved through the same `persist` layer as everything else, so it carries
+// over between sessions.
+const COLOR_VARS = [
+  { key:'asphalt', name:'Page Background', desc:'The main background behind everything' },
+  { key:'surface', name:'Card Background', desc:'Background of cards and panels' },
+  { key:'surface-raised', name:'Input Background', desc:'Background of input fields and raised panels' },
+  { key:'chalk', name:'Primary Text', desc:'Main text color' },
+  { key:'concrete', name:'Secondary Text', desc:'Muted text — labels, captions, hints' },
+  { key:'orange', name:'Accent Color', desc:'Buttons, highlighted values, active states' },
+  { key:'orange-dim', name:'Dim Accent', desc:'Warnings and less prominent highlights' },
+  { key:'rebar', name:'Diagram Fill', desc:'Material color used inside drawings' },
+  { key:'line', name:'Borders', desc:'Dividers and outlines' },
+  { key:'good', name:'Success Color', desc:'Passing / valid-state indicator' }
+];
+
+const DEFAULT_PALETTE = {
+  asphalt:'#1B1D1E', surface:'#242728', 'surface-raised':'#2D3132',
+  concrete:'#A9A69D', chalk:'#EDEAE2', orange:'#E8590C', 'orange-dim':'#7A3410',
+  rebar:'#8B6B4A', line:'#3A3D3E', good:'#6FA97C'
+};
+
+const COLOR_PRESETS = [
+  { name:'Workshop Orange', palette: DEFAULT_PALETTE },
+  { name:'Blueprint Blue', palette:{
+    asphalt:'#12181F', surface:'#1C2530', 'surface-raised':'#253140',
+    concrete:'#8FA3B8', chalk:'#E8EEF3', orange:'#2E86DE', 'orange-dim':'#1B4F7A',
+    rebar:'#5C7A99', line:'#2A3542', good:'#6FA97C'
+  }},
+  { name:'Forest', palette:{
+    asphalt:'#161C16', surface:'#1F281F', 'surface-raised':'#283328',
+    concrete:'#9DAE94', chalk:'#EAF0E4', orange:'#4A7C3F', 'orange-dim':'#2E4D27',
+    rebar:'#6B8E5A', line:'#2E3A2A', good:'#79B36B'
+  }},
+  { name:'High Contrast', palette:{
+    asphalt:'#000000', surface:'#111111', 'surface-raised':'#1A1A1A',
+    concrete:'#CCCCCC', chalk:'#FFFFFF', orange:'#FFD400', 'orange-dim':'#806A00',
+    rebar:'#888888', line:'#444444', good:'#4CAF50'
+  }}
+];
+
+const COLOR_KEY = 'shop-assistant-palette';
+
+function colorGetCurrentValue(key){
+  return getComputedStyle(document.documentElement).getPropertyValue('--'+key).trim() || DEFAULT_PALETTE[key];
+}
+
+function colorApplyPalette(palette){
+  Object.entries(palette).forEach(([key,value])=>{
+    document.documentElement.style.setProperty('--'+key, value);
+  });
+}
+
+async function colorSavePalette(palette){
+  try{ await persist.set(COLOR_KEY, JSON.stringify(palette), false); }
+  catch(e){ console.error('Color palette save failed', e); }
+}
+
+async function colorLoadPalette(){
+  try{
+    const result = await persist.get(COLOR_KEY, false);
+    if(result && result.value){
+      const parsed = JSON.parse(result.value);
+      if(parsed && typeof parsed === 'object') colorApplyPalette(parsed);
+    }
+  }catch(e){
+    // no custom palette saved yet — default CSS values stand as-is
+  }
+  colorRenderPickers();
+}
+
+function colorRenderPickers(){
+  const container = $('color-pickers');
+  container.innerHTML = '';
+  COLOR_VARS.forEach(v=>{
+    const row = document.createElement('div');
+    row.className = 'color-picker-row';
+
+    const info = document.createElement('div');
+    info.className = 'color-picker-info';
+    info.innerHTML = '<div class="color-picker-name">'+v.name+'</div><div class="color-picker-desc">'+v.desc+'</div>';
+
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.value = colorGetCurrentValue(v.key);
+    input.addEventListener('input', async ()=>{
+      document.documentElement.style.setProperty('--'+v.key, input.value);
+      const currentPalette = {};
+      COLOR_VARS.forEach(cv => currentPalette[cv.key] = colorGetCurrentValue(cv.key));
+      await colorSavePalette(currentPalette);
+    });
+
+    row.appendChild(info);
+    row.appendChild(input);
+    container.appendChild(row);
+  });
+}
+
+function colorRenderPresets(){
+  const container = $('color-presets');
+  container.innerHTML = '';
+  COLOR_PRESETS.forEach(preset=>{
+    const btn = document.createElement('div');
+    btn.className = 'preset-swatch';
+    const dotKeys = ['asphalt','orange','chalk'];
+    const dots = dotKeys.map(k=>'<span class="preset-swatch-dot" style="background:'+preset.palette[k]+';"></span>').join('');
+    btn.innerHTML = '<div class="preset-swatch-dots">'+dots+'</div><div>'+preset.name+'</div>';
+    btn.addEventListener('click', async ()=>{
+      colorApplyPalette(preset.palette);
+      await colorSavePalette(preset.palette);
+      colorRenderPickers();
+    });
+    container.appendChild(btn);
+  });
+}
+
+$('color-reset-btn').addEventListener('click', async ()=>{
+  colorApplyPalette(DEFAULT_PALETTE);
+  await colorSavePalette(DEFAULT_PALETTE);
+  colorRenderPickers();
+});
+
+colorRenderPresets();
+colorLoadPalette();
+
 const fmt = (n, d=2) => isFinite(n) ? n.toLocaleString(undefined,{maximumFractionDigits:d, minimumFractionDigits:0}) : '–';
 const deg = r => r * (180/Math.PI);
 const rad = d => d * (Math.PI/180);
