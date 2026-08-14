@@ -1369,7 +1369,7 @@
           <button type="button" data-unit="fraction">Fractional in</button>
           <button type="button" data-unit="mm">Millimeters</button>
         </div>
-        <p class="desc" style="margin-top:-4px;">Mark distance and Bit size can be entered in any of the units above. The shim size library, and every result below, is always in millimeters.</p>
+        <p class="desc" style="margin-top:-4px;">Mark distance and Bit size can be entered in any of the units above. The shim size library, and the shim combination/total/difference results below, are always in decimal inches.</p>
 
         <div class="row">
           <div><label id="rs-mark-label">Mark distance (in)</label><input type="text" id="rs-mark" inputmode="decimal" placeholder="e.g. 0.500"></div>
@@ -1390,11 +1390,11 @@
         <div class="note" id="rs-note"></div>
 
         <details class="lib-details" id="rs-shim-details">
-          <summary>Shim size library (mm) <span class="lib-count" id="rs-shim-count"></span></summary>
+          <summary>Shim size library (in) <span class="lib-count" id="rs-shim-count"></span></summary>
           <div class="blade-manager open">
             <div id="rs-shim-list"></div>
             <div class="shim-row shim-row-new">
-              <input type="text" id="rs-new-size" placeholder="Shim size (mm) — e.g. 0.5" inputmode="decimal">
+              <input type="text" id="rs-new-size" placeholder="Shim size (in) — e.g. 0.010" inputmode="decimal">
               <button type="button" id="rs-add-shim">Add</button>
             </div>
           </div>
@@ -6092,28 +6092,29 @@ document.querySelectorAll('#pa-unit-toggle button').forEach(btn=>{
 });
 
 // ---- Router Shims ----
-// The shim library is always in millimeters — it represents a fixed set of
+// The shim library is always in decimal inches — it represents a fixed set of
 // physical shim stock, independent of whatever unit Mark distance / Bit size
 // happen to be entered in. Mark distance / Bit size stay toggleable (decimal
 // in / fractional in / mm) for convenient entry, but are converted to
-// millimeters immediately for computation, and every result is shown in mm.
+// decimal inches immediately for computation, and every result is shown
+// in decimal inches.
 const SHIM_KEY = 'saw-shims';
-const DEFAULT_SHIMS_MM = [0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0].map(size=>({ id:genShimId0(), size }));
+const DEFAULT_SHIMS_IN = [0.002, 0.004, 0.006, 0.010, 0.020, 0.030, 0.060, 0.125].map(size=>({ id:genShimId0(), size }));
 function genShimId0(){ return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
-let shimState = { shims: DEFAULT_SHIMS_MM, unit: 'decimal' };
-let rsMarkMm = NaN, rsBitMm = NaN;
+let shimState = { shims: DEFAULT_SHIMS_IN, unit: 'decimal' };
+let rsMarkIn = NaN, rsBitIn = NaN;
 
-// mm-only formatting helpers for the shim library and results, which are
-// always mm regardless of shimState.unit (that toggle only governs Mark
-// distance / Bit size entry)
-function rsToInputValue(mm){
-  if(!isFinite(mm)) return '';
-  return (Math.round(mm*1000)/1000).toString();
+// decimal-inch-only formatting helpers for the shim library and results,
+// which are always inches regardless of shimState.unit (that toggle only
+// governs Mark distance / Bit size entry)
+function rsToInputValue(inches){
+  if(!isFinite(inches)) return '';
+  return (Math.round(inches*10000)/10000).toString();
 }
-function rsToLabel(mm){
-  if(!isFinite(mm)) return '–';
-  return fmt(mm,3) + ' mm';
+function rsToLabel(inches){
+  if(!isFinite(inches)) return '–';
+  return fmt(inches,4) + ' in';
 }
 
 async function saveShims(){
@@ -6205,36 +6206,34 @@ document.querySelectorAll('#rs-unit-toggle button').forEach(btn=>{
     shimState.unit = btn.dataset.unit;
     $('rs-mark-label').textContent = 'Mark distance (' + unitAbbrev(shimState.unit) + ')';
     $('rs-bit-label').textContent = 'Bit size (' + unitAbbrev(shimState.unit) + ')';
-    $('rs-mark').value = isFinite(rsMarkMm) ? toInputValue(rsMarkMm/MM_PER_IN, shimState.unit) : '';
-    $('rs-bit').value = isFinite(rsBitMm) ? toInputValue(rsBitMm/MM_PER_IN, shimState.unit) : '';
+    $('rs-mark').value = isFinite(rsMarkIn) ? toInputValue(rsMarkIn, shimState.unit) : '';
+    $('rs-bit').value = isFinite(rsBitIn) ? toInputValue(rsBitIn, shimState.unit) : '';
     saveShims();
     calcRouterShims();
   });
 });
 
 $('rs-mark').addEventListener('input', ()=>{
-  const inches = parseLengthInput($('rs-mark').value, shimState.unit);
-  rsMarkMm = isFinite(inches) ? inches*MM_PER_IN : NaN;
+  rsMarkIn = parseLengthInput($('rs-mark').value, shimState.unit);
   calcRouterShims();
 });
 $('rs-bit').addEventListener('input', ()=>{
-  const inches = parseLengthInput($('rs-bit').value, shimState.unit);
-  rsBitMm = isFinite(inches) ? inches*MM_PER_IN : NaN;
+  rsBitIn = parseLengthInput($('rs-bit').value, shimState.unit);
   calcRouterShims();
 });
 
 // Finds the subset of shims (each usable at most once) summing as close as
-// possible to targetMm, minimizing shim count as the tiebreaker. 0/1-knapsack DP.
-function solveShimCombo(targetMm, shimSizesMm){
-  const items = shimSizesMm.filter(v=>v>0);
-  if(!items.length || targetMm<=0) return null;
+// possible to targetIn, minimizing shim count as the tiebreaker. 0/1-knapsack DP.
+function solveShimCombo(targetIn, shimSizesIn){
+  const items = shimSizesIn.filter(v=>v>0);
+  if(!items.length || targetIn<=0) return null;
 
-  const RES = 0.001; // search resolution, in mm (1 micron)
-  const targetTicks = Math.round(targetMm/RES);
+  const RES = 0.0001; // search resolution, in inches (a ten-thousandth of an inch)
+  const targetTicks = Math.round(targetIn/RES);
   const itemTicks = items.map(v=>Math.round(v/RES)).filter(v=>v>0);
   const maxItemTick = Math.max(...itemTicks);
   let maxSearch = targetTicks + maxItemTick;
-  maxSearch = Math.min(maxSearch, 50000); // safety cap (50mm of search range)
+  maxSearch = Math.min(maxSearch, 20000); // safety cap (2in of search range)
   if(targetTicks > maxSearch) return null;
 
   const n = itemTicks.length;
@@ -6274,37 +6273,36 @@ function solveShimCombo(targetMm, shimSizesMm){
     }
   }
 
-  const comboMm = new Map();
+  const comboIn = new Map();
   usedTicks.forEach(v=>{
     const size = v*RES;
-    comboMm.set(size, (comboMm.get(size)||0)+1);
+    comboIn.set(size, (comboIn.get(size)||0)+1);
   });
 
   return {
-    comboMm,
+    comboMm: comboIn,
     totalMm: bestS*RES,
-    diffMm: (bestS*RES) - targetMm
+    diffMm: (bestS*RES) - targetIn
   };
 }
 
 // shows the shim distance simultaneously in all three formats, since Mark
 // distance / Bit size can be entered in any of them but it's often useful to
-// cross-check against a fractional ruler or know the mm value at a glance
-function rsShowShimDistance(mm){
-  if(!isFinite(mm)){
+// cross-check against a fractional ruler or know the mm equivalent at a glance
+function rsShowShimDistance(inches){
+  if(!isFinite(inches)){
     $('rs-shimdist-dec').textContent = '–';
     $('rs-shimdist-frac').textContent = '–';
     $('rs-shimdist-mm').textContent = '–';
     return;
   }
-  const inches = mm / MM_PER_IN;
   $('rs-shimdist-dec').textContent = toLabel(inches, 'decimal');
   $('rs-shimdist-frac').textContent = toLabel(inches, 'fraction');
-  $('rs-shimdist-mm').textContent = rsToLabel(mm);
+  $('rs-shimdist-mm').textContent = toLabel(inches, 'mm');
 }
 
 function calcRouterShims(){
-  if(!isFinite(rsMarkMm) || !isFinite(rsBitMm)){
+  if(!isFinite(rsMarkIn) || !isFinite(rsBitIn)){
     rsShowShimDistance(NaN);
     $('rs-combo').textContent = '–';
     $('rs-total').textContent = '–';
@@ -6313,7 +6311,7 @@ function calcRouterShims(){
     return;
   }
 
-  const shimDistance = rsMarkMm - (rsBitMm/2);
+  const shimDistance = rsMarkIn - (rsBitIn/2);
   rsShowShimDistance(shimDistance);
 
   if(shimDistance<=0){
