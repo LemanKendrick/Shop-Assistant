@@ -285,6 +285,27 @@
   }
   .backup-textpanel-actions button:hover{color:var(--orange);border-color:var(--orange);}
 
+  #pkr-print-overlay{
+    display:none;
+  }
+  #pkr-print-overlay.visible{
+    display:block;
+    position:fixed;
+    inset:0;
+    background:#fff;
+    color:#111;
+    z-index:9999;
+    overflow:auto;
+    padding:24px;
+    font-family:Arial,Helvetica,sans-serif;
+    box-sizing:border-box;
+  }
+  @media print{
+    body > *:not(#pkr-print-overlay){ display:none !important; }
+    #pkr-print-overlay{ position:static !important; padding:0; }
+    #pkr-print-overlay .no-print{ display:none !important; }
+  }
+
   .color-picker-row{
     display:flex;
     align-items:center;
@@ -1850,14 +1871,14 @@
         <p class="desc">Lay out a row of evenly-spaced objects — balusters, pickets, tiles, shelf pins — across a fixed space.</p>
 
         <div class="unit-toggle" id="os-unit-toggle">
-          <button type="button" data-unit="in" class="active">Inches</button>
-          <button type="button" data-unit="ft">Feet</button>
-          <button type="button" data-unit="m">Meters</button>
+          <button type="button" data-unit="decimal" class="active">Decimal in</button>
+          <button type="button" data-unit="fraction">Fractional in</button>
+          <button type="button" data-unit="mm">Millimeters</button>
         </div>
 
         <div class="row">
-          <div><label id="os-length-label">Space length (in)</label><input type="number" id="os-length" step="0.25" placeholder="e.g. 96"></div>
-          <div><label id="os-width-label">Object width (in)</label><input type="number" id="os-width" step="0.0625" placeholder="e.g. 1.5"></div>
+          <div><label id="os-length-label">Space length (in)</label><input type="text" id="os-length" inputmode="decimal" placeholder="e.g. 96"></div>
+          <div><label id="os-width-label">Object width (in)</label><input type="text" id="os-width" inputmode="decimal" placeholder="e.g. 1.5"></div>
         </div>
 
         <label>Layout type</label>
@@ -1870,8 +1891,8 @@
 
         <div id="os-fields-rows" class="os-fields">
           <div class="row">
-            <div><label id="os-lgap-label">Left gap (in)</label><input type="number" id="os-lgap" step="0.0625" placeholder="e.g. 2"></div>
-            <div><label id="os-rgap-label">Right gap (in)</label><input type="number" id="os-rgap" step="0.0625" placeholder="e.g. 2"></div>
+            <div><label id="os-lgap-label">Left gap (in)</label><input type="text" id="os-lgap" inputmode="decimal" placeholder="e.g. 2"></div>
+            <div><label id="os-rgap-label">Right gap (in)</label><input type="text" id="os-rgap" inputmode="decimal" placeholder="e.g. 2"></div>
           </div>
           <label>Number of Objects</label>
           <input type="number" id="os-numrows" step="1" placeholder="e.g. 20">
@@ -1882,7 +1903,7 @@
 
         <div id="os-fields-space" class="os-fields" style="display:none">
           <label id="os-spacing-label">Spacing (in)</label>
-          <input type="number" id="os-spacing" step="0.0625" placeholder="e.g. 4">
+          <input type="text" id="os-spacing" inputmode="decimal" placeholder="e.g. 4">
           <div class="result">
             <div class="line"><span>Number of Objects</span><b class="hi" id="os-out-numrows">–</b></div>
             <div class="line"><span>Left gap</span><b id="os-out-lgap">–</b></div>
@@ -1893,7 +1914,7 @@
         <div id="os-fields-varspace" class="os-fields" style="display:none">
           <p class="desc">An object is placed flush at each end — the space between them is adjusted slightly from your target so everything fits exactly.</p>
           <label id="os-approxspace-label">Approximate space (in)</label>
-          <input type="number" id="os-approxspace" step="0.0625" placeholder="e.g. 4">
+          <input type="text" id="os-approxspace" inputmode="decimal" placeholder="e.g. 4">
           <div class="result">
             <div class="line"><span>Number of rows</span><b id="os-vs-numrows">–</b></div>
             <div class="line"><span>Adjusted space</span><b class="hi" id="os-vs-adjspace">–</b></div>
@@ -1903,7 +1924,7 @@
         <div id="os-fields-varobject" class="os-fields" style="display:none">
           <p class="desc">An object is placed flush at each end, using your exact desired spacing — the object width is adjusted slightly from your estimate so everything fits.</p>
           <label id="os-desiredspace-label">Desired space (in)</label>
-          <input type="number" id="os-desiredspace" step="0.0625" placeholder="e.g. 4">
+          <input type="text" id="os-desiredspace" inputmode="decimal" placeholder="e.g. 4">
           <div class="result">
             <div class="line"><span>Number of rows</span><b id="os-vo-numrows">–</b></div>
             <div class="line"><span>Adjusted object width</span><b class="hi" id="os-vo-adjwidth">–</b></div>
@@ -1931,25 +1952,25 @@
         <p class="desc">Lay out spindles along two rails meeting at a corner — Rail A along the front, Rail B along the side. The spindle at the corner counts as a Rail A spindle.</p>
 
         <div class="unit-toggle" id="spl-unit-toggle">
-          <button type="button" data-unit="in" class="active">Inches</button>
-          <button type="button" data-unit="ft">Feet</button>
-          <button type="button" data-unit="m">Meters</button>
+          <button type="button" data-unit="decimal" class="active">Decimal in</button>
+          <button type="button" data-unit="fraction">Fractional in</button>
+          <button type="button" data-unit="mm">Millimeters</button>
         </div>
 
         <div class="row">
-          <div><label id="spl-raila-label">Rail A length (in)</label><input type="number" id="spl-raila" step="0.25" placeholder="e.g. 96"></div>
-          <div><label id="spl-railb-label">Rail B length (in)</label><input type="number" id="spl-railb" step="0.25" placeholder="e.g. 72"></div>
+          <div><label id="spl-raila-label">Rail A length (in)</label><input type="text" id="spl-raila" inputmode="decimal" placeholder="e.g. 96"></div>
+          <div><label id="spl-railb-label">Rail B length (in)</label><input type="text" id="spl-railb" inputmode="decimal" placeholder="e.g. 72"></div>
         </div>
         <div class="row">
-          <div><label id="spl-gapa-label">Gap at free end of Rail A (in)</label><input type="number" id="spl-gapa" step="0.0625" placeholder="e.g. 2"></div>
-          <div><label id="spl-gapb-label">Gap at free end of Rail B (in)</label><input type="number" id="spl-gapb" step="0.0625" placeholder="e.g. 2"></div>
+          <div><label id="spl-gapa-label">Gap at free end of Rail A (in)</label><input type="text" id="spl-gapa" inputmode="decimal" placeholder="e.g. 2"></div>
+          <div><label id="spl-gapb-label">Gap at free end of Rail B (in)</label><input type="text" id="spl-gapb" inputmode="decimal" placeholder="e.g. 2"></div>
         </div>
         <div class="row">
-          <div><label id="spl-railwidth-label">Rail width (in)</label><input type="number" id="spl-railwidth" step="0.0625" placeholder="e.g. 5.5"></div>
-          <div><label id="spl-spindlewidth-label">Spindle width (in)</label><input type="number" id="spl-spindlewidth" step="0.0625" placeholder="e.g. 1.5"></div>
+          <div><label id="spl-railwidth-label">Rail width (in)</label><input type="text" id="spl-railwidth" inputmode="decimal" placeholder="e.g. 5.5"></div>
+          <div><label id="spl-spindlewidth-label">Spindle width (in)</label><input type="text" id="spl-spindlewidth" inputmode="decimal" placeholder="e.g. 1.5"></div>
         </div>
         <div class="row">
-          <div><label id="spl-target-label">Target spacing (in)</label><input type="number" id="spl-target" step="0.0625" placeholder="e.g. 4"></div>
+          <div><label id="spl-target-label">Target spacing (in)</label><input type="text" id="spl-target" inputmode="decimal" placeholder="e.g. 4"></div>
           <div><label>Corner joint</label>
             <select id="spl-joint">
               <option value="butt">Butt Joint</option>
@@ -1992,18 +2013,18 @@
 
         <div class="pk-subpanel active" id="pk-rect">
           <div class="unit-toggle" id="pkr-unit-toggle">
-            <button type="button" data-unit="in" class="active">Inches</button>
-            <button type="button" data-unit="ft">Feet</button>
-            <button type="button" data-unit="m">Meters</button>
+            <button type="button" data-unit="decimal" class="active">Decimal in</button>
+            <button type="button" data-unit="fraction">Fractional in</button>
+            <button type="button" data-unit="mm">Millimeters</button>
           </div>
 
           <div class="row">
-            <div><label id="pkr-opening-label">Opening width (in)</label><input type="number" id="pkr-opening" step="0.25" placeholder="e.g. 96"></div>
-            <div><label id="pkr-picketwidth-label">Picket width (in)</label><input type="number" id="pkr-picketwidth" step="0.0625" placeholder="e.g. 1.5"></div>
+            <div><label id="pkr-opening-label">Opening width (in)</label><input type="text" id="pkr-opening" inputmode="decimal" placeholder="e.g. 96"></div>
+            <div><label id="pkr-picketwidth-label">Picket width (in)</label><input type="text" id="pkr-picketwidth" inputmode="decimal" placeholder="e.g. 1.5"></div>
           </div>
           <div class="row">
             <div><label>Rail incline (deg)</label><input type="number" id="pkr-incline" step="0.5" value="0" placeholder="e.g. 30"></div>
-            <div><label id="pkr-maxspace-label">Maximum spacing (in)</label><input type="number" id="pkr-maxspace" step="0.0625" value="4" placeholder="e.g. 4"></div>
+            <div><label id="pkr-maxspace-label">Maximum spacing (in)</label><input type="text" id="pkr-maxspace" inputmode="decimal" value="4" placeholder="e.g. 4"></div>
           </div>
 
           <label>Layout type</label>
@@ -2023,6 +2044,8 @@
           <select id="pkr-picket-select"></select>
           <div class="note" id="pkr-picket-detail">–</div>
 
+          <button type="button" id="pkr-print-btn" class="link-btn" style="margin-top:10px;">Print / Save as PDF</button>
+
           <div class="section-divider">Saved Layouts</div>
           <div class="shim-row shim-row-new">
             <input type="text" id="pkr-save-name" placeholder="File name (e.g. Front porch railing)">
@@ -2035,18 +2058,18 @@
           <p class="desc">Pickets radiate from the middle of the bottom edge, sweeping the full 180° up through the opening. The two purely-horizontal end pickets are skipped. Since the opening is rectangular, not a semicircle, each picket ends at a different length — some reach the top edge, some reach a side. Each picket's bottom is mitered so it sits flush against its neighbor, built outward from the center.</p>
 
           <div class="unit-toggle" id="pks-unit-toggle">
-            <button type="button" data-unit="in" class="active">Inches</button>
-            <button type="button" data-unit="ft">Feet</button>
-            <button type="button" data-unit="m">Meters</button>
+            <button type="button" data-unit="decimal" class="active">Decimal in</button>
+            <button type="button" data-unit="fraction">Fractional in</button>
+            <button type="button" data-unit="mm">Millimeters</button>
           </div>
 
           <div class="row">
-            <div><label id="pks-length-label">Space length (in)</label><input type="number" id="pks-length" step="0.25" placeholder="e.g. 96"></div>
-            <div><label id="pks-height-label">Space height (in)</label><input type="number" id="pks-height" step="0.25" placeholder="e.g. 48"></div>
+            <div><label id="pks-length-label">Space length (in)</label><input type="text" id="pks-length" inputmode="decimal" placeholder="e.g. 96"></div>
+            <div><label id="pks-height-label">Space height (in)</label><input type="text" id="pks-height" inputmode="decimal" placeholder="e.g. 48"></div>
           </div>
           <div class="row">
-            <div><label id="pks-picketwidth-label">Picket width (in)</label><input type="number" id="pks-picketwidth" step="0.0625" placeholder="e.g. 1.5"></div>
-            <div><label id="pks-maxspace-label">Maximum spacing (in)</label><input type="number" id="pks-maxspace" step="0.0625" value="4" placeholder="e.g. 4"></div>
+            <div><label id="pks-picketwidth-label">Picket width (in)</label><input type="text" id="pks-picketwidth" inputmode="decimal" placeholder="e.g. 1.5"></div>
+            <div><label id="pks-maxspace-label">Maximum spacing (in)</label><input type="text" id="pks-maxspace" inputmode="decimal" value="4" placeholder="e.g. 4"></div>
           </div>
 
           <div class="note" id="pks-note">Enter all four dimensions to see results.</div>
@@ -2113,13 +2136,13 @@
 
         <div class="pk-subpanel active" id="wf-stud">
           <div class="unit-toggle" id="swf-unit-toggle">
-            <button type="button" data-unit="in" class="active">Inches</button>
-            <button type="button" data-unit="ft">Feet</button>
-            <button type="button" data-unit="m">Meters</button>
+            <button type="button" data-unit="decimal" class="active">Decimal in</button>
+            <button type="button" data-unit="fraction">Fractional in</button>
+            <button type="button" data-unit="mm">Millimeters</button>
           </div>
 
           <label id="swf-foundation-label">Foundation length (in)</label>
-          <input type="number" id="swf-foundation" step="0.25" placeholder="e.g. 240">
+          <input type="text" id="swf-foundation" inputmode="decimal" placeholder="e.g. 240">
 
           <div class="row">
             <div><label>Stud size</label>
@@ -2174,13 +2197,13 @@
           <p class="desc">Studs for a rake (gable end) wall, each cut to reach an imaginary line running from the left height to the right height.</p>
 
           <div class="unit-toggle" id="rkw-unit-toggle">
-            <button type="button" data-unit="in" class="active">Inches</button>
-            <button type="button" data-unit="ft">Feet</button>
-            <button type="button" data-unit="m">Meters</button>
+            <button type="button" data-unit="decimal" class="active">Decimal in</button>
+            <button type="button" data-unit="fraction">Fractional in</button>
+            <button type="button" data-unit="mm">Millimeters</button>
           </div>
 
           <label id="rkw-foundation-label">Foundation length (in)</label>
-          <input type="number" id="rkw-foundation" step="0.25" placeholder="e.g. 144">
+          <input type="text" id="rkw-foundation" inputmode="decimal" placeholder="e.g. 144">
 
           <div class="row">
             <div><label>Stud size</label>
@@ -2213,11 +2236,11 @@
             </div>
           </div>
           <div class="row">
-            <div><label id="rkw-leftheight-label">Left height (in)</label><input type="number" id="rkw-leftheight" step="0.25" placeholder="e.g. 84"></div>
-            <div><label id="rkw-rightheight-label">Right height (in)</label><input type="number" id="rkw-rightheight" step="0.25" placeholder="e.g. 108"></div>
+            <div><label id="rkw-leftheight-label">Left height (in)</label><input type="text" id="rkw-leftheight" inputmode="decimal" placeholder="e.g. 84"></div>
+            <div><label id="rkw-rightheight-label">Right height (in)</label><input type="text" id="rkw-rightheight" inputmode="decimal" placeholder="e.g. 108"></div>
           </div>
           <label id="rkw-levelseat-label">Level seat (in)</label>
-          <input type="number" id="rkw-levelseat" step="0.25" placeholder="e.g. 36">
+          <input type="text" id="rkw-levelseat" inputmode="decimal" placeholder="e.g. 36">
 
           <div class="note" id="rkw-note">Enter all dimensions to see results.</div>
 
@@ -8789,11 +8812,8 @@ bindAll(['sq-a','sq-b','sq-tapestart'], sq345Calc);
 sq345UpdateLabels();
 
 // ---- Object Spacing ----
-const OS_UNIT_TO_IN = { in: 1, ft: 12, m: 39.37007874 };
-function osToInches(value, unit){ return value * OS_UNIT_TO_IN[unit]; }
-function osFromInches(inVal, unit){ return inVal / OS_UNIT_TO_IN[unit]; }
 
-let osUnit = 'in';
+let osUnit = 'decimal';
 const OS_LENGTH_FIELDS = ['os-length','os-width','os-lgap','os-rgap','os-spacing','os-approxspace','os-desiredspace'];
 const OS_LENGTH_LABELS = {
   'os-length':'os-length-label', 'os-width':'os-width-label', 'os-lgap':'os-lgap-label', 'os-rgap':'os-rgap-label',
@@ -8805,7 +8825,7 @@ const OS_LABEL_TEXT = {
 };
 
 function osUpdateLabels(){
-  const suffix = ' (' + osUnit + ')';
+  const suffix = ' (' + unitAbbrev(osUnit) + ')';
   Object.entries(OS_LABEL_TEXT).forEach(([labelId,text])=>{
     const isWidthLabel = labelId==='os-width-label';
     const widthText = (isWidthLabel && $('os-type').value==='varobject') ? 'Approximate object width' : text;
@@ -8828,13 +8848,12 @@ document.querySelectorAll('#os-unit-toggle button').forEach(btn=>{
     const oldUnit = osUnit;
     const inches = {};
     OS_LENGTH_FIELDS.forEach(id=>{
-      const v = parseFloat($(id).value);
-      inches[id] = isFinite(v) ? osToInches(v, oldUnit) : null;
+      inches[id] = parseLengthInput($(id).value, oldUnit);
     });
     osUnit = btn.dataset.unit;
     document.querySelectorAll('#os-unit-toggle button').forEach(b=>b.classList.toggle('active', b===btn));
     OS_LENGTH_FIELDS.forEach(id=>{
-      if(inches[id] !== null) $(id).value = fmt(osFromInches(inches[id], osUnit), 4);
+      if(isFinite(inches[id])) $(id).value = toInputValue(inches[id], osUnit);
     });
     osUpdateLabels();
     calcObjectSpacing();
@@ -8862,7 +8881,7 @@ function osRenderDiagram(L, N, leftGap, objWidth, spacing){
     const bx = toX(x).toFixed(1);
     return `<line x1="${bx}" y1="${boundaryTop.toFixed(1)}" x2="${bx}" y2="${boundaryBottom.toFixed(1)}" stroke="var(--chalk)" stroke-width="3"/>`;
   }).join('');
-  const widthLabel = `<text x="${(svgW/2).toFixed(1)}" y="${(boundaryTop-6).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" fill="var(--chalk)">Space length: ${fmt(osFromInches(L,osUnit),3)} ${osUnit}</text>`;
+  const widthLabel = `<text x="${(svgW/2).toFixed(1)}" y="${(boundaryTop-6).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" fill="var(--chalk)">Space length: ${toLabel(L, osUnit)}</text>`;
 
   // when objects are packed tightly, a number on every single one becomes an
   // unreadable smear — thin out which ones get labeled (all rectangles still
@@ -8898,7 +8917,7 @@ function osRenderDiagram(L, N, leftGap, objWidth, spacing){
   widthCallout += `<line x1="${objLeftX.toFixed(1)}" y1="${wTickBottom.toFixed(1)}" x2="${objLeftX.toFixed(1)}" y2="${(wLabelY-4).toFixed(1)}" stroke="var(--orange)" stroke-width="1"/>`;
   widthCallout += `<line x1="${objRightX.toFixed(1)}" y1="${wTickBottom.toFixed(1)}" x2="${objRightX.toFixed(1)}" y2="${(wLabelY-4).toFixed(1)}" stroke="var(--orange)" stroke-width="1"/>`;
   widthCallout += `<line x1="${objLeftX.toFixed(1)}" y1="${(wLabelY-4).toFixed(1)}" x2="${objRightX.toFixed(1)}" y2="${(wLabelY-4).toFixed(1)}" stroke="var(--orange)" stroke-width="1"/>`;
-  widthCallout += `<text x="${((objLeftX+objRightX)/2).toFixed(1)}" y="${(wLabelY-8).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" fill="var(--orange)">Width: ${fmt(osFromInches(objWidth,osUnit),3)} ${osUnit}</text>`;
+  widthCallout += `<text x="${((objLeftX+objRightX)/2).toFixed(1)}" y="${(wLabelY-8).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" fill="var(--orange)">Width: ${toLabel(objWidth, osUnit)}</text>`;
 
   // end-gap dimension labels
   const rightGap = L - leftGap - N*objWidth - (N-1)*spacing;
@@ -8909,12 +8928,12 @@ function osRenderDiagram(L, N, leftGap, objWidth, spacing){
   const tick = x => `<line x1="${x.toFixed(1)}" y1="${tickTop.toFixed(1)}" x2="${x.toFixed(1)}" y2="${tickBottom.toFixed(1)}" stroke="var(--concrete)" stroke-width="1"/>`;
   gapLabels += tick(toX(0)) + tick(firstObjX);
   gapLabels += `<line x1="${toX(0).toFixed(1)}" y1="${gapY.toFixed(1)}" x2="${firstObjX.toFixed(1)}" y2="${gapY.toFixed(1)}" stroke="var(--concrete)" stroke-width="1"/>`;
-  gapLabels += `<text x="${((toX(0)+firstObjX)/2).toFixed(1)}" y="${(gapY+14).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--concrete)">Left gap: ${fmt(osFromInches(leftGap,osUnit),3)} ${osUnit}</text>`;
+  gapLabels += `<text x="${((toX(0)+firstObjX)/2).toFixed(1)}" y="${(gapY+14).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--concrete)">Left gap: ${toLabel(leftGap, osUnit)}</text>`;
   gapLabels += tick(lastObjX) + tick(toX(L));
   gapLabels += `<line x1="${lastObjX.toFixed(1)}" y1="${gapY.toFixed(1)}" x2="${toX(L).toFixed(1)}" y2="${gapY.toFixed(1)}" stroke="var(--concrete)" stroke-width="1"/>`;
-  gapLabels += `<text x="${((lastObjX+toX(L))/2).toFixed(1)}" y="${(gapY+14).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--concrete)">Right gap: ${fmt(osFromInches(rightGap,osUnit),3)} ${osUnit}</text>`;
+  gapLabels += `<text x="${((lastObjX+toX(L))/2).toFixed(1)}" y="${(gapY+14).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--concrete)">Right gap: ${toLabel(rightGap, osUnit)}</text>`;
 
-  const caption = `<text x="${svgW/2}" y="${svgH-14}" text-anchor="middle" font-family="Oswald, sans-serif" font-size="12" letter-spacing=".03em" fill="var(--concrete)">${N} OBJECTS — ${fmt(osFromInches(spacing,osUnit),2)} ${osUnit} SPACING</text>`;
+  const caption = `<text x="${svgW/2}" y="${svgH-14}" text-anchor="middle" font-family="Oswald, sans-serif" font-size="12" letter-spacing=".03em" fill="var(--concrete)">${N} OBJECTS — ${toLabel(spacing, osUnit)} SPACING</text>`;
 
   box.innerHTML = `<svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">
     ${boundaryLines}
@@ -8951,15 +8970,15 @@ function osShowObjectDetail(){
   const { leftGap, objWidth, spacing } = osLayoutData;
   const left = leftGap + i*(objWidth+spacing);
   const right = left + objWidth;
-  detailEl.innerHTML = 'Left edge from left end of space: <b class="hi">' + fmt(osFromInches(left,osUnit),3) + ' ' + osUnit + '</b>'
-    + ' &nbsp;·&nbsp; Right edge: <b class="hi">' + fmt(osFromInches(right,osUnit),3) + ' ' + osUnit + '</b>';
+  detailEl.innerHTML = 'Left edge from left end of space: <b class="hi">' + toLabel(left, osUnit) + '</b>'
+    + ' &nbsp;·&nbsp; Right edge: <b class="hi">' + toLabel(right, osUnit) + '</b>';
 }
 
 $('os-object-select').addEventListener('change', osShowObjectDetail);
 
 function calcObjectSpacing(){
   const type = osTypeSelect.value;
-  const Lraw = parseFloat($('os-length').value), Wraw = parseFloat($('os-width').value);
+  const Lraw = parseLengthInput($('os-length').value, osUnit), Wraw = parseLengthInput($('os-width').value, osUnit);
   const clearAll = ()=>{
     ['os-out-spacing','os-out-numrows','os-out-lgap','os-out-rgap','os-vs-numrows','os-vs-adjspace','os-vo-numrows','os-vo-adjwidth']
       .forEach(id=>{ if($(id)) $(id).textContent='–'; });
@@ -8968,51 +8987,51 @@ function calcObjectSpacing(){
     osRenderObjectSelect();
   };
   if(!isFinite(Lraw) || Lraw<=0 || !isFinite(Wraw) || Wraw<0){ clearAll(); return; }
-  const L = osToInches(Lraw, osUnit), W = osToInches(Wraw, osUnit); // canonical inches
+  const L = Lraw, W = Wraw; // canonical inches
 
   if(type === 'rows'){
-    const LGraw=parseFloat($('os-lgap').value), RGraw=parseFloat($('os-rgap').value), N=parseInt($('os-numrows').value);
+    const LGraw=parseLengthInput($('os-lgap').value, osUnit), RGraw=parseLengthInput($('os-rgap').value, osUnit), N=parseInt($('os-numrows').value);
     if(!isFinite(LGraw) || !isFinite(RGraw) || !N || N<2){ clearAll(); return; }
-    const LG=osToInches(LGraw,osUnit), RG=osToInches(RGraw,osUnit);
+    const LG=LGraw, RG=RGraw;
     const spacing = (L - LG - RG - N*W) / (N-1);
-    $('os-out-spacing').textContent = fmt(osFromInches(spacing,osUnit),3) + ' ' + osUnit;
+    $('os-out-spacing').textContent = toLabel(spacing, osUnit);
     osRenderDiagram(L, N, LG, W, spacing);
 
   } else if(type === 'space'){
-    const Sraw = parseFloat($('os-spacing').value);
+    const Sraw = parseLengthInput($('os-spacing').value, osUnit);
     if(!isFinite(Sraw) || Sraw<0){ clearAll(); return; }
-    const S = osToInches(Sraw,osUnit);
+    const S = Sraw;
     if(W===0 && S===0){ clearAll(); return; } // nothing to measure a count against
     const N = Math.floor((L+S)/(W+S));
     if(N<1){ clearAll(); return; }
     const gap = (L - N*W - (N-1)*S) / 2;
     $('os-out-numrows').textContent = N;
-    $('os-out-lgap').textContent = fmt(osFromInches(gap,osUnit),3) + ' ' + osUnit;
-    $('os-out-rgap').textContent = fmt(osFromInches(gap,osUnit),3) + ' ' + osUnit;
+    $('os-out-lgap').textContent = toLabel(gap, osUnit);
+    $('os-out-rgap').textContent = toLabel(gap, osUnit);
     osRenderDiagram(L, N, gap, W, S);
 
   } else if(type === 'varspace'){
-    const Sraw = parseFloat($('os-approxspace').value);
+    const Sraw = parseLengthInput($('os-approxspace').value, osUnit);
     if(!isFinite(Sraw) || Sraw<0){ clearAll(); return; }
-    const Sapprox = osToInches(Sraw,osUnit);
+    const Sapprox = Sraw;
     if(W===0 && Sapprox===0){ clearAll(); return; } // nothing to measure a count against
     const N = Math.round((L+Sapprox)/(W+Sapprox));
     if(N<2){ clearAll(); return; }
     const adjSpace = (L - N*W) / (N-1);
     $('os-vs-numrows').textContent = N;
-    $('os-vs-adjspace').textContent = fmt(osFromInches(adjSpace,osUnit),3) + ' ' + osUnit;
+    $('os-vs-adjspace').textContent = toLabel(adjSpace, osUnit);
     osRenderDiagram(L, N, 0, W, adjSpace);
 
   } else if(type === 'varobject'){
-    const Sraw = parseFloat($('os-desiredspace').value);
+    const Sraw = parseLengthInput($('os-desiredspace').value, osUnit);
     if(!isFinite(Sraw) || Sraw<0){ clearAll(); return; }
-    const S = osToInches(Sraw,osUnit);
+    const S = Sraw;
     if(W===0 && S===0){ clearAll(); return; } // nothing to measure a count against
     const N = Math.round((L+S)/(W+S)); // W here is the *approximate* object width
     if(N<1){ clearAll(); return; }
     const adjWidth = (L - (N-1)*S) / N;
     $('os-vo-numrows').textContent = N;
-    $('os-vo-adjwidth').textContent = fmt(osFromInches(adjWidth,osUnit),3) + ' ' + osUnit;
+    $('os-vo-adjwidth').textContent = toLabel(adjWidth, osUnit);
     osRenderDiagram(L, N, 0, adjWidth, S);
   }
 }
@@ -9054,7 +9073,7 @@ function osCurrentStateSnapshot(){
 }
 
 function osApplyStateSnapshot(data){
-  osUnit = data.unit || 'in';
+  osUnit = data.unit || 'decimal';
   document.querySelectorAll('#os-unit-toggle button').forEach(b=>{
     b.classList.toggle('active', b.dataset.unit === osUnit);
   });
@@ -9121,7 +9140,7 @@ $('os-save-btn').addEventListener('click', ()=>{
 osLoadSaves();
 
 // ---- Spindle Layout ----
-let splUnit = 'in';
+let splUnit = 'decimal';
 const SPL_LENGTH_FIELDS = ['spl-raila','spl-railb','spl-gapa','spl-gapb','spl-railwidth','spl-spindlewidth','spl-target'];
 const SPL_LABEL_TEXT = {
   'spl-raila-label':'Rail A length', 'spl-railb-label':'Rail B length',
@@ -9130,7 +9149,7 @@ const SPL_LABEL_TEXT = {
 };
 
 function splUpdateLabels(){
-  const suffix = ' (' + splUnit + ')';
+  const suffix = ' (' + unitAbbrev(splUnit) + ')';
   Object.entries(SPL_LABEL_TEXT).forEach(([labelId,text])=>{ $(labelId).textContent = text + suffix; });
 }
 
@@ -9139,13 +9158,12 @@ document.querySelectorAll('#spl-unit-toggle button').forEach(btn=>{
     const oldUnit = splUnit;
     const inches = {};
     SPL_LENGTH_FIELDS.forEach(id=>{
-      const v = parseFloat($(id).value);
-      inches[id] = isFinite(v) ? osToInches(v, oldUnit) : null;
+      inches[id] = parseLengthInput($(id).value, oldUnit);
     });
     splUnit = btn.dataset.unit;
     document.querySelectorAll('#spl-unit-toggle button').forEach(b=>b.classList.toggle('active', b===btn));
     SPL_LENGTH_FIELDS.forEach(id=>{
-      if(inches[id] !== null) $(id).value = fmt(osFromInches(inches[id], splUnit), 4);
+      if(isFinite(inches[id])) $(id).value = toInputValue(inches[id], splUnit);
     });
     splUpdateLabels();
     calcSpindleLayout();
@@ -9211,10 +9229,10 @@ function splRailBSpindlesCalc(railBLen, railW, gapB, spindleW, target, joint){
 let splRailAData = null, splRailBData = null;
 
 function calcSpindleLayout(){
-  const railARaw=parseFloat($('spl-raila').value), railBRaw=parseFloat($('spl-railb').value);
-  const gapARaw=parseFloat($('spl-gapa').value), gapBRaw=parseFloat($('spl-gapb').value);
-  const railWRaw=parseFloat($('spl-railwidth').value), spindleWRaw=parseFloat($('spl-spindlewidth').value);
-  const targetRaw=parseFloat($('spl-target').value);
+  const railARaw=parseLengthInput($('spl-raila').value, splUnit), railBRaw=parseLengthInput($('spl-railb').value, splUnit);
+  const gapARaw=parseLengthInput($('spl-gapa').value, splUnit), gapBRaw=parseLengthInput($('spl-gapb').value, splUnit);
+  const railWRaw=parseLengthInput($('spl-railwidth').value, splUnit), spindleWRaw=parseLengthInput($('spl-spindlewidth').value, splUnit);
+  const targetRaw=parseLengthInput($('spl-target').value, splUnit);
   const joint = $('spl-joint').value;
 
   if(!railARaw || !railBRaw || !isFinite(gapARaw) || !isFinite(gapBRaw) || !railWRaw || !spindleWRaw || !targetRaw){
@@ -9226,10 +9244,10 @@ function calcSpindleLayout(){
     return;
   }
 
-  const railA = osToInches(railARaw,splUnit), railB = osToInches(railBRaw,splUnit);
-  const gapA = osToInches(gapARaw,splUnit), gapB = osToInches(gapBRaw,splUnit);
-  const railW = osToInches(railWRaw,splUnit), spindleW = osToInches(spindleWRaw,splUnit);
-  const target = osToInches(targetRaw,splUnit);
+  const railA = railARaw, railB = railBRaw;
+  const gapA = gapARaw, gapB = gapBRaw;
+  const railW = railWRaw, spindleW = spindleWRaw;
+  const target = targetRaw;
 
   // the corner spindle sits on the centerline of the OTHER rail too, so it's
   // inset from Rail A's true endpoint by half the rail width — true for
@@ -9252,9 +9270,9 @@ function calcSpindleLayout(){
 
   $('spl-note').innerHTML =
     'Total Number of Rail A Spindles: <b class="hi">' + totalA + '</b>\n' +
-    'Actual Center/Center Spacing — Rail A: <b>' + fmt(osFromInches(splRailAData.spacing,splUnit),3) + ' ' + splUnit + '</b>\n' +
+    'Actual Center/Center Spacing — Rail A: <b>' + toLabel(splRailAData.spacing, splUnit) + '</b>\n' +
     'Total Number of Rail B Spindles: <b class="hi">' + totalB + '</b>\n' +
-    'Actual Center/Center Spacing — Rail B: <b>' + fmt(osFromInches(splRailBData.spacing,splUnit),3) + ' ' + splUnit + '</b>';
+    'Actual Center/Center Spacing — Rail B: <b>' + toLabel(splRailBData.spacing, splUnit) + '</b>';
 
   const selA = $('spl-a-select'), selB = $('spl-b-select');
   const prevA = selA.value, prevB = selB.value;
@@ -9344,15 +9362,15 @@ function splShowDetail(which){
   if(which === 'a'){
     if(!splRailAData || !sel.value){ detailEl.textContent = '–'; return; }
     const distFromEnd = splRailAData.startPos + (i-1)*splRailAData.spacing;
-    detailEl.innerHTML = 'Distance from ' + endLabel + ' of Rail A: <b class="hi">' + fmt(osFromInches(distFromEnd,splUnit),3) + ' ' + splUnit + '</b>';
+    detailEl.innerHTML = 'Distance from ' + endLabel + ' of Rail A: <b class="hi">' + toLabel(distFromEnd, splUnit) + '</b>';
   } else {
     if(!splRailBData || !sel.value){ detailEl.textContent = '–'; return; }
     const distFromEnd = splRailBData.distances[i-1];
-    detailEl.innerHTML = 'Distance from ' + endLabel + ' of Rail B: <b class="hi">' + fmt(osFromInches(distFromEnd,splUnit),3) + ' ' + splUnit + '</b>';
+    detailEl.innerHTML = 'Distance from ' + endLabel + ' of Rail B: <b class="hi">' + toLabel(distFromEnd, splUnit) + '</b>';
   }
 
-  const railARaw=parseFloat($('spl-raila').value), railBRaw=parseFloat($('spl-railb').value);
-  splRenderDiagram(osToInches(railARaw,splUnit), osToInches(railBRaw,splUnit));
+  const railARaw=parseLengthInput($('spl-raila').value, splUnit), railBRaw=parseLengthInput($('spl-railb').value, splUnit);
+  splRenderDiagram(railARaw, railBRaw);
 }
 
 $('spl-a-select').addEventListener('change', ()=>splShowDetail('a'));
@@ -9394,7 +9412,7 @@ function splCurrentStateSnapshot(){
 }
 
 function splApplyStateSnapshot(data){
-  splUnit = data.unit || 'in';
+  splUnit = data.unit || 'decimal';
   document.querySelectorAll('#spl-unit-toggle button').forEach(b=>{
     b.classList.toggle('active', b.dataset.unit === splUnit);
   });
@@ -9467,13 +9485,13 @@ document.querySelectorAll('#pk-subtabs button').forEach(btn=>{
 });
 
 // ---- Rectangular Pickets ----
-let pkrUnit = 'in';
+let pkrUnit = 'decimal';
 const PKR_LENGTH_FIELDS = ['pkr-opening','pkr-picketwidth','pkr-maxspace'];
 const PKR_LENGTH_LABELS = { 'pkr-opening':'pkr-opening-label', 'pkr-picketwidth':'pkr-picketwidth-label', 'pkr-maxspace':'pkr-maxspace-label' };
 const PKR_LABEL_TEXT = { 'pkr-opening-label':'Opening width', 'pkr-picketwidth-label':'Picket width', 'pkr-maxspace-label':'Maximum spacing' };
 
 function pkrUpdateLabels(){
-  const suffix = ' (' + pkrUnit + ')';
+  const suffix = ' (' + unitAbbrev(pkrUnit) + ')';
   Object.entries(PKR_LABEL_TEXT).forEach(([labelId,text])=>{ $(labelId).textContent = text + suffix; });
 }
 
@@ -9482,13 +9500,12 @@ document.querySelectorAll('#pkr-unit-toggle button').forEach(btn=>{
     const oldUnit = pkrUnit;
     const inches = {};
     PKR_LENGTH_FIELDS.forEach(id=>{
-      const v = parseFloat($(id).value);
-      inches[id] = isFinite(v) ? osToInches(v, oldUnit) : null;
+      inches[id] = parseLengthInput($(id).value, oldUnit);
     });
     pkrUnit = btn.dataset.unit;
     document.querySelectorAll('#pkr-unit-toggle button').forEach(b=>b.classList.toggle('active', b===btn));
     PKR_LENGTH_FIELDS.forEach(id=>{
-      if(inches[id] !== null) $(id).value = fmt(osFromInches(inches[id], pkrUnit), 4);
+      if(isFinite(inches[id])) $(id).value = toInputValue(inches[id], pkrUnit);
     });
     pkrUpdateLabels();
     calcPicketRect();
@@ -9582,15 +9599,108 @@ function pkrShowPicketDetail(){
   const i = parseInt(sel.value) - 1; // 0-based index
   const { W, positions } = pkrLayoutData;
   const leftEdge = positions[i] - W/2;
-  detailEl.innerHTML = 'Distance from left edge to left edge of picket: <b class="hi">' + fmt(osFromInches(leftEdge,pkrUnit),3) + ' ' + pkrUnit + '</b>';
+  detailEl.innerHTML = 'Distance from left edge to left edge of picket: <b class="hi">' + toLabel(leftEdge, pkrUnit) + '</b>';
 }
 
 $('pkr-picket-select').addEventListener('change', pkrShowPicketDetail);
 
+function pkrPrintLayout(){
+  if(!pkrLayoutData){
+    alert('Enter opening width, picket width, and maximum spacing to compute a layout first.');
+    return;
+  }
+  const { N, W, positions } = pkrLayoutData;
+  const typeSelect = $('pkr-type');
+  const typeLabel = typeSelect.options[typeSelect.selectedIndex].text;
+  const inclineDeg = parseFloat($('pkr-incline').value) || 0;
+
+  const rows = [];
+  for(let i=0; i<N; i++){
+    const leftEdge = positions[i] - W/2;
+    rows.push('<tr><td style="padding:6px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">Picket ' + (i+1) + '</td><td style="padding:6px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">Left Edge</td><td style="padding:6px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">' + toLabel(leftEdge, pkrUnit) + '</td></tr>');
+  }
+
+  const plainTextLines = [];
+  plainTextLines.push('PICKET LAYOUT — RECTANGULAR');
+  plainTextLines.push('Generated by Shop Assistant — ' + new Date().toLocaleString());
+  plainTextLines.push('');
+  plainTextLines.push('INPUTS');
+  plainTextLines.push('Opening width: ' + toLabel(parseLengthInput($('pkr-opening').value, pkrUnit), pkrUnit));
+  plainTextLines.push('Picket width: ' + toLabel(W, pkrUnit));
+  plainTextLines.push('Rail incline: ' + fmt(inclineDeg,2) + '°');
+  plainTextLines.push('Maximum spacing: ' + toLabel(parseLengthInput($('pkr-maxspace').value, pkrUnit), pkrUnit));
+  plainTextLines.push('Layout type: ' + typeLabel);
+  plainTextLines.push('Number of pickets: ' + N);
+  plainTextLines.push('');
+  plainTextLines.push('PICKET POSITIONS');
+  for(let i=0; i<N; i++){
+    const leftEdge = positions[i] - W/2;
+    plainTextLines.push('Picket ' + (i+1) + ' - Left Edge - ' + toLabel(leftEdge, pkrUnit));
+  }
+  const plainText = plainTextLines.join('\n');
+
+  const bodyHtml = `
+    <div class="no-print" style="text-align:right;margin-bottom:10px;">
+      <button type="button" id="pkr-print-now-btn" style="font-family:Arial,sans-serif;padding:8px 16px;margin-right:8px;cursor:pointer;">Print / Save as PDF</button>
+      <button type="button" id="pkr-print-copy-btn" style="font-family:Arial,sans-serif;padding:8px 16px;margin-right:8px;cursor:pointer;">Copy as Text</button>
+      <button type="button" id="pkr-print-close-btn" style="font-family:Arial,sans-serif;padding:8px 16px;cursor:pointer;">Close</button>
+    </div>
+    <div class="no-print" id="pkr-print-copy-status" style="text-align:right;font-size:12px;color:#555;margin-bottom:10px;"></div>
+    <div class="no-print" id="pkr-print-copy-area" style="display:none;margin-bottom:16px;">
+      <textarea readonly rows="6" style="width:100%;font-family:monospace;font-size:12px;box-sizing:border-box;padding:8px;">${plainText}</textarea>
+    </div>
+    <h1 style="font-size:20px;margin-bottom:2px;color:#111;font-family:Arial,Helvetica,sans-serif;font-weight:bold;text-transform:none;letter-spacing:normal;">Picket Layout — Rectangular</h1>
+    <div style="color:#555;font-size:12px;margin-bottom:20px;">Generated by Shop Assistant — ${new Date().toLocaleString()}</div>
+
+    <h2 style="font-size:14px;margin-top:24px;margin-bottom:8px;border-bottom:1px solid #999;padding-bottom:4px;color:#111;font-family:Arial,Helvetica,sans-serif;font-weight:bold;">Inputs</h2>
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      <tr><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#555;width:45%;">Opening width</td><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">${toLabel(parseLengthInput($('pkr-opening').value, pkrUnit), pkrUnit)}</td></tr>
+      <tr><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#555;">Picket width</td><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">${toLabel(W, pkrUnit)}</td></tr>
+      <tr><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#555;">Rail incline</td><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">${fmt(inclineDeg,2)}°</td></tr>
+      <tr><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#555;">Maximum spacing</td><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">${toLabel(parseLengthInput($('pkr-maxspace').value, pkrUnit), pkrUnit)}</td></tr>
+      <tr><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#555;">Layout type</td><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">${typeLabel}</td></tr>
+      <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Number of pickets</td><td style="padding:4px 8px;font-size:13px;color:#111;">${N}</td></tr>
+    </table>
+
+    <h2 style="font-size:14px;margin-top:24px;margin-bottom:8px;border-bottom:1px solid #999;padding-bottom:4px;color:#111;font-family:Arial,Helvetica,sans-serif;font-weight:bold;">Picket Positions</h2>
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><th style="text-align:left;font-size:12px;color:#555;border-bottom:2px solid #333;padding:6px 8px;">Picket</th><th style="text-align:left;font-size:12px;color:#555;border-bottom:2px solid #333;padding:6px 8px;">Reference</th><th style="text-align:left;font-size:12px;color:#555;border-bottom:2px solid #333;padding:6px 8px;">Distance</th></tr>
+      ${rows.join('')}
+    </table>
+  `;
+
+  let overlay = document.getElementById('pkr-print-overlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'pkr-print-overlay';
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = bodyHtml;
+  overlay.classList.add('visible');
+
+  document.getElementById('pkr-print-now-btn').addEventListener('click', ()=>{ window.print(); });
+  document.getElementById('pkr-print-close-btn').addEventListener('click', ()=>{ overlay.classList.remove('visible'); });
+  document.getElementById('pkr-print-copy-btn').addEventListener('click', async ()=>{
+    const statusEl = document.getElementById('pkr-print-copy-status');
+    const areaEl = document.getElementById('pkr-print-copy-area');
+    try{
+      await navigator.clipboard.writeText(plainText);
+      statusEl.textContent = 'Copied to clipboard.';
+    }catch(e){
+      areaEl.style.display = '';
+      const ta = areaEl.querySelector('textarea');
+      ta.focus();
+      ta.select();
+      statusEl.textContent = 'Selected the text below — copy it manually (automatic copy was blocked here).';
+    }
+  });
+}
+$('pkr-print-btn').addEventListener('click', pkrPrintLayout);
+
 function calcPicketRect(){
-  const Lraw = parseFloat($('pkr-opening').value), Wraw = parseFloat($('pkr-picketwidth').value);
+  const Lraw = parseLengthInput($('pkr-opening').value, pkrUnit), Wraw = parseLengthInput($('pkr-picketwidth').value, pkrUnit);
   const inclineDeg = parseFloat($('pkr-incline').value)||0;
-  const Smaxraw = parseFloat($('pkr-maxspace').value);
+  const Smaxraw = parseLengthInput($('pkr-maxspace').value, pkrUnit);
   const type = $('pkr-type').value;
 
   if(!Lraw || !Wraw || !isFinite(Smaxraw) || Smaxraw<=0){
@@ -9599,7 +9709,7 @@ function calcPicketRect(){
     pkrLayoutData = null; pkrRenderPicketSelect();
     return;
   }
-  const L = osToInches(Lraw,pkrUnit), W = osToInches(Wraw,pkrUnit), Smax = osToInches(Smaxraw,pkrUnit);
+  const L = Lraw, W = Wraw, Smax = Smaxraw;
   const theta = rad(inclineDeg);
 
   let N, spacing, endGap;
@@ -9625,9 +9735,9 @@ function calcPicketRect(){
 
   $('pkr-note').innerHTML =
     'Number of Pickets: <b class="hi">' + N + '</b>\n' +
-    'End Gap: <b>' + fmt(osFromInches(endGap,pkrUnit),3) + ' ' + pkrUnit + '</b>\n' +
-    'Picket Center/Center: <b>' + fmt(osFromInches(centerToCenter,pkrUnit),3) + ' ' + pkrUnit + '</b>\n' +
-    'Space Between Pickets: <b>' + fmt(osFromInches(spacing,pkrUnit),3) + ' ' + pkrUnit + '</b>';
+    'End Gap: <b>' + toLabel(endGap, pkrUnit) + '</b>\n' +
+    'Picket Center/Center: <b>' + toLabel(centerToCenter, pkrUnit) + '</b>\n' +
+    'Space Between Pickets: <b>' + toLabel(spacing, pkrUnit) + '</b>';
 
   // positions of picket centers, in inches, for the diagram
   const positions = [];
@@ -9682,7 +9792,7 @@ function pkrCurrentStateSnapshot(){
 }
 
 function pkrApplyStateSnapshot(data){
-  pkrUnit = data.unit || 'in';
+  pkrUnit = data.unit || 'decimal';
   document.querySelectorAll('#pkr-unit-toggle button').forEach(b=>{
     b.classList.toggle('active', b.dataset.unit === pkrUnit);
   });
@@ -9746,13 +9856,13 @@ $('pkr-save-btn').addEventListener('click', ()=>{
 pkrLoadSaves();
 
 // ---- SunBurst Pickets ----
-let pksUnit = 'in';
+let pksUnit = 'decimal';
 const PKS_LENGTH_FIELDS = ['pks-length','pks-height','pks-picketwidth','pks-maxspace'];
 const PKS_LENGTH_LABELS = { 'pks-length':'pks-length-label', 'pks-height':'pks-height-label', 'pks-picketwidth':'pks-picketwidth-label', 'pks-maxspace':'pks-maxspace-label' };
 const PKS_LABEL_TEXT = { 'pks-length-label':'Space length', 'pks-height-label':'Space height', 'pks-picketwidth-label':'Picket width', 'pks-maxspace-label':'Maximum spacing' };
 
 function pksUpdateLabels(){
-  const suffix = ' (' + pksUnit + ')';
+  const suffix = ' (' + unitAbbrev(pksUnit) + ')';
   Object.entries(PKS_LABEL_TEXT).forEach(([labelId,text])=>{ $(labelId).textContent = text + suffix; });
 }
 
@@ -9761,13 +9871,12 @@ document.querySelectorAll('#pks-unit-toggle button').forEach(btn=>{
     const oldUnit = pksUnit;
     const inches = {};
     PKS_LENGTH_FIELDS.forEach(id=>{
-      const v = parseFloat($(id).value);
-      inches[id] = isFinite(v) ? osToInches(v, oldUnit) : null;
+      inches[id] = parseLengthInput($(id).value, oldUnit);
     });
     pksUnit = btn.dataset.unit;
     document.querySelectorAll('#pks-unit-toggle button').forEach(b=>b.classList.toggle('active', b===btn));
     PKS_LENGTH_FIELDS.forEach(id=>{
-      if(inches[id] !== null) $(id).value = fmt(osFromInches(inches[id], pksUnit), 4);
+      if(isFinite(inches[id])) $(id).value = toInputValue(inches[id], pksUnit);
     });
     pksUpdateLabels();
     calcPicketSunburst();
@@ -9885,8 +9994,8 @@ function pksRenderDiagram(rows, L, H, W){
 let pksRows = [];
 
 function calcPicketSunburst(){
-  const Lraw=parseFloat($('pks-length').value), Hraw=parseFloat($('pks-height').value);
-  const Wraw=parseFloat($('pks-picketwidth').value), Smaxraw=parseFloat($('pks-maxspace').value);
+  const Lraw=parseLengthInput($('pks-length').value, pksUnit), Hraw=parseLengthInput($('pks-height').value, pksUnit);
+  const Wraw=parseLengthInput($('pks-picketwidth').value, pksUnit), Smaxraw=parseLengthInput($('pks-maxspace').value, pksUnit);
 
   if(!Lraw || !Hraw || !Wraw || !isFinite(Smaxraw) || Smaxraw<=0){
     $('pks-note').textContent = 'Enter all four dimensions to see results.';
@@ -9896,8 +10005,8 @@ function calcPicketSunburst(){
     pksRenderDiagram([], 0, 0, 0);
     return;
   }
-  const L = osToInches(Lraw,pksUnit), H = osToInches(Hraw,pksUnit);
-  const W = osToInches(Wraw,pksUnit), Smax = osToInches(Smaxraw,pksUnit);
+  const L = Lraw, H = Hraw;
+  const W = Wraw, Smax = Smaxraw;
 
   pksRows = pksCalculateLayout(L, H, W, Smax);
 
@@ -9906,7 +10015,7 @@ function calcPicketSunburst(){
 
   $('pks-note').innerHTML =
     'Number of Pickets: <b class="hi">' + pksRows.length + '</b>\n' +
-    'Longest / Shortest Picket: <b>' + fmt(osFromInches(longest,pksUnit),3) + ' / ' + fmt(osFromInches(shortest,pksUnit),3) + ' ' + pksUnit + '</b>\n' +
+    'Longest / Shortest Picket: <b>' + toLabel(longest,pksUnit) + ' / ' + toLabel(shortest, pksUnit) + '</b>\n' +
     'Spacing between every adjacent picket is fixed at your Maximum Spacing by construction.';
 
   const sel = $('pks-picket-select');
@@ -9931,20 +10040,20 @@ function pksShowPicketDetail(){
   let html =
     'Type: <b class="hi">' + r.type + '</b>\n' +
     'Bottom Miter Angle: <b>' + fmt(r.bottomMiterDeg,2) + '°</b>\n' +
-    'Blank Length: <b>' + fmt(osFromInches(r.blankLength,pksUnit),3) + ' ' + pksUnit + '</b>\n';
+    'Blank Length: <b>' + toLabel(r.blankLength, pksUnit) + '</b>\n';
 
   if(r.type === 'Corner'){
     html += 'Top Miter (horizontal cut): <b>' + fmt(r.topMiterHorizontal,2) + '°</b>\n' +
       'Top Miter (vertical cut): <b>' + fmt(r.topMiterVertical,2) + '°</b>\n' +
-      'Distance to horizontal miter: <b>' + fmt(osFromInches(r.distToHorizontalMiter,pksUnit),3) + ' ' + pksUnit + '</b>\n' +
-      'Distance to corner point: <b>' + fmt(osFromInches(r.distToCornerPoint,pksUnit),3) + ' ' + pksUnit + '</b>\n' +
-      'Distance to vertical miter: <b>' + fmt(osFromInches(r.distToVerticalMiter,pksUnit),3) + ' ' + pksUnit + '</b>';
+      'Distance to horizontal miter: <b>' + toLabel(r.distToHorizontalMiter, pksUnit) + '</b>\n' +
+      'Distance to corner point: <b>' + toLabel(r.distToCornerPoint, pksUnit) + '</b>\n' +
+      'Distance to vertical miter: <b>' + toLabel(r.distToVerticalMiter, pksUnit) + '</b>';
   } else {
     html += (r.type==='Top' ? 'Top Miter: ' : r.type==='Side' ? 'Side Miter: ' : 'Top/Bottom Miter: ') + '<b>' + fmt(r.topOrSideMiterDeg,2) + '°</b>';
   }
   $('pks-picket-detail').innerHTML = html;
 
-  pksRenderDiagram(pksRows, osToInches(parseFloat($('pks-length').value),pksUnit), osToInches(parseFloat($('pks-height').value),pksUnit), osToInches(parseFloat($('pks-picketwidth').value),pksUnit));
+  pksRenderDiagram(pksRows, parseLengthInput($('pks-length').value, pksUnit), parseLengthInput($('pks-height').value, pksUnit), parseLengthInput($('pks-picketwidth').value, pksUnit));
 }
 
 $('pks-picket-select').addEventListener('change', pksShowPicketDetail);
@@ -9988,7 +10097,7 @@ function pksCurrentStateSnapshot(){
 }
 
 function pksApplyStateSnapshot(data){
-  pksUnit = data.unit || 'in';
+  pksUnit = data.unit || 'decimal';
   document.querySelectorAll('#pks-unit-toggle button').forEach(b=>{
     b.classList.toggle('active', b.dataset.unit === pksUnit);
   });
@@ -10062,11 +10171,11 @@ document.querySelectorAll('#wf-subtabs button').forEach(btn=>{
 });
 
 // ---- Stud Walls ----
-let swfUnit = 'in';
+let swfUnit = 'decimal';
 const SWF_LENGTH_FIELDS = ['swf-foundation'];
 
 function swfUpdateLabels(){
-  $('swf-foundation-label').textContent = 'Foundation length (' + swfUnit + ')';
+  $('swf-foundation-label').textContent = 'Foundation length (' + unitAbbrev(swfUnit) + ')';
 }
 
 document.querySelectorAll('#swf-unit-toggle button').forEach(btn=>{
@@ -10074,13 +10183,12 @@ document.querySelectorAll('#swf-unit-toggle button').forEach(btn=>{
     const oldUnit = swfUnit;
     const inches = {};
     SWF_LENGTH_FIELDS.forEach(id=>{
-      const v = parseFloat($(id).value);
-      inches[id] = isFinite(v) ? osToInches(v, oldUnit) : null;
+      inches[id] = parseLengthInput($(id).value, oldUnit);
     });
     swfUnit = btn.dataset.unit;
     document.querySelectorAll('#swf-unit-toggle button').forEach(b=>b.classList.toggle('active', b===btn));
     SWF_LENGTH_FIELDS.forEach(id=>{
-      if(inches[id] !== null) $(id).value = fmt(osFromInches(inches[id], swfUnit), 4);
+      if(isFinite(inches[id])) $(id).value = toInputValue(inches[id], swfUnit);
     });
     swfUpdateLabels();
     calcStudWalls();
@@ -10143,7 +10251,7 @@ function swfRenderDiagram(foundationLen, studW, sheathing, positions, cornerOnPl
 }
 
 function calcStudWalls(){
-  const foundationRaw = parseFloat($('swf-foundation').value);
+  const foundationRaw = parseLengthInput($('swf-foundation').value, swfUnit);
   const studW = parseFloat($('swf-studsize').value);
   const oc = parseFloat($('swf-oc').value);
   const sheathing = parseFloat($('swf-sheathing').value);
@@ -10158,7 +10266,7 @@ function calcStudWalls(){
     return;
   }
 
-  const foundation = osToInches(foundationRaw, swfUnit);
+  const foundation = foundationRaw;
 
   const positions = [];
   let i = 1;
@@ -10222,10 +10330,10 @@ function swfShowStudDetail(){
   if(!swfStuds.length || !sel.value){ detailEl.textContent = '–'; return; }
   const i = parseInt(sel.value)-1;
   const leftEdge = swfStuds[i]; // already measured from the foundation's left corner
-  detailEl.innerHTML = 'Distance from left side of foundation to left edge of stud: <b class="hi">' + fmt(osFromInches(leftEdge,swfUnit),3) + ' ' + swfUnit + '</b>';
+  detailEl.innerHTML = 'Distance from left side of foundation to left edge of stud: <b class="hi">' + toLabel(leftEdge, swfUnit) + '</b>';
   const studW = parseFloat($('swf-studsize').value);
   const sheathing = parseFloat($('swf-sheathing').value);
-  swfRenderDiagram(osToInches(parseFloat($('swf-foundation').value),swfUnit), studW, sheathing, swfStuds, $('swf-corner').value==='onplate');
+  swfRenderDiagram(parseLengthInput($('swf-foundation').value, swfUnit), studW, sheathing, swfStuds, $('swf-corner').value==='onplate');
 }
 
 $('swf-stud-select').addEventListener('change', swfShowStudDetail);
@@ -10272,7 +10380,7 @@ function swfCurrentStateSnapshot(){
 }
 
 function swfApplyStateSnapshot(data){
-  swfUnit = data.unit || 'in';
+  swfUnit = data.unit || 'decimal';
   document.querySelectorAll('#swf-unit-toggle button').forEach(b=>{
     b.classList.toggle('active', b.dataset.unit === swfUnit);
   });
@@ -10336,7 +10444,7 @@ $('swf-save-btn').addEventListener('click', ()=>{
 swfLoadSaves();
 
 // ---- Rake Walls ----
-let rkwUnit = 'in';
+let rkwUnit = 'decimal';
 const RKW_LENGTH_FIELDS = ['rkw-foundation','rkw-leftheight','rkw-rightheight','rkw-levelseat'];
 const RKW_LABEL_TEXT = {
   'rkw-foundation-label':'Foundation length', 'rkw-leftheight-label':'Left height',
@@ -10344,7 +10452,7 @@ const RKW_LABEL_TEXT = {
 };
 
 function rkwUpdateLabels(){
-  const suffix = ' (' + rkwUnit + ')';
+  const suffix = ' (' + unitAbbrev(rkwUnit) + ')';
   Object.entries(RKW_LABEL_TEXT).forEach(([labelId,text])=>{ $(labelId).textContent = text + suffix; });
 }
 
@@ -10353,13 +10461,12 @@ document.querySelectorAll('#rkw-unit-toggle button').forEach(btn=>{
     const oldUnit = rkwUnit;
     const inches = {};
     RKW_LENGTH_FIELDS.forEach(id=>{
-      const v = parseFloat($(id).value);
-      inches[id] = isFinite(v) ? osToInches(v, oldUnit) : null;
+      inches[id] = parseLengthInput($(id).value, oldUnit);
     });
     rkwUnit = btn.dataset.unit;
     document.querySelectorAll('#rkw-unit-toggle button').forEach(b=>b.classList.toggle('active', b===btn));
     RKW_LENGTH_FIELDS.forEach(id=>{
-      if(inches[id] !== null) $(id).value = fmt(osFromInches(inches[id], rkwUnit), 4);
+      if(isFinite(inches[id])) $(id).value = toInputValue(inches[id], rkwUnit);
     });
     rkwUpdateLabels();
     calcRakeWalls();
@@ -10441,14 +10548,14 @@ function rkwRenderDiagram(foundation, positions, leftH, rightH, levelSeat){
 }
 
 function calcRakeWalls(){
-  const foundationRaw = parseFloat($('rkw-foundation').value);
+  const foundationRaw = parseLengthInput($('rkw-foundation').value, rkwUnit);
   const studW = parseFloat($('rkw-studsize').value);
   const oc = parseFloat($('rkw-oc').value);
   const sheathing = parseFloat($('rkw-sheathing').value);
-  const leftHRaw = parseFloat($('rkw-leftheight').value);
-  const rightHRaw = parseFloat($('rkw-rightheight').value);
+  const leftHRaw = parseLengthInput($('rkw-leftheight').value, rkwUnit);
+  const rightHRaw = parseLengthInput($('rkw-rightheight').value, rkwUnit);
   const cornerOnPlate = $('rkw-corner').value === 'onplate';
-  const levelSeatRaw = parseFloat($('rkw-levelseat').value);
+  const levelSeatRaw = parseLengthInput($('rkw-levelseat').value, rkwUnit);
 
   if(!foundationRaw || !isFinite(leftHRaw) || !isFinite(rightHRaw) || !isFinite(levelSeatRaw)){
     $('rkw-note').textContent = 'Enter all dimensions to see results.';
@@ -10459,9 +10566,9 @@ function calcRakeWalls(){
     return;
   }
 
-  const foundation = osToInches(foundationRaw, rkwUnit);
-  const leftH = osToInches(leftHRaw, rkwUnit), rightH = osToInches(rightHRaw, rkwUnit);
-  const levelSeat = osToInches(levelSeatRaw, rkwUnit);
+  const foundation = foundationRaw;
+  const leftH = leftHRaw, rightH = rightHRaw;
+  const levelSeat = levelSeatRaw;
 
   const rise = rightH - leftH;
   const run = foundation - levelSeat*2;
@@ -10509,13 +10616,13 @@ function rkwShowStudDetail(){
   const i = parseInt(sel.value)-1;
   const s = rkwStuds[i];
   detailEl.innerHTML =
-    'Distance from left side of foundation to left edge of stud: <b class="hi">' + fmt(osFromInches(s.x,rkwUnit),3) + ' ' + rkwUnit + '</b>\n' +
-    'Stud height: <b class="hi">' + fmt(osFromInches(s.height,rkwUnit),3) + ' ' + rkwUnit + '</b>';
+    'Distance from left side of foundation to left edge of stud: <b class="hi">' + toLabel(s.x, rkwUnit) + '</b>\n' +
+    'Stud height: <b class="hi">' + toLabel(s.height, rkwUnit) + '</b>';
 
-  const foundationRaw = parseFloat($('rkw-foundation').value);
-  const leftHRaw = parseFloat($('rkw-leftheight').value), rightHRaw = parseFloat($('rkw-rightheight').value);
-  const levelSeatRaw = parseFloat($('rkw-levelseat').value);
-  rkwRenderDiagram(osToInches(foundationRaw,rkwUnit), rkwStuds, osToInches(leftHRaw,rkwUnit), osToInches(rightHRaw,rkwUnit), osToInches(levelSeatRaw,rkwUnit));
+  const foundationRaw = parseLengthInput($('rkw-foundation').value, rkwUnit);
+  const leftHRaw = parseLengthInput($('rkw-leftheight').value, rkwUnit), rightHRaw = parseLengthInput($('rkw-rightheight').value, rkwUnit);
+  const levelSeatRaw = parseLengthInput($('rkw-levelseat').value, rkwUnit);
+  rkwRenderDiagram(foundationRaw, rkwStuds, leftHRaw, rightHRaw, levelSeatRaw);
 }
 
 $('rkw-stud-select').addEventListener('change', rkwShowStudDetail);
@@ -10565,7 +10672,7 @@ function rkwCurrentStateSnapshot(){
 }
 
 function rkwApplyStateSnapshot(data){
-  rkwUnit = data.unit || 'in';
+  rkwUnit = data.unit || 'decimal';
   document.querySelectorAll('#rkw-unit-toggle button').forEach(b=>{
     b.classList.toggle('active', b.dataset.unit === rkwUnit);
   });
