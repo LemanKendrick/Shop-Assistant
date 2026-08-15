@@ -9677,6 +9677,8 @@ function pkrPrintLayout(){
   }
   overlay.innerHTML = bodyHtml;
   overlay.classList.add('visible');
+  overlay.scrollTop = 0;
+  window.scrollTo(0,0);
 
   document.getElementById('pkr-print-now-btn').addEventListener('click', ()=>{ window.print(); });
   document.getElementById('pkr-print-close-btn').addEventListener('click', ()=>{ overlay.classList.remove('visible'); });
