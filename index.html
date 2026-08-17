@@ -285,10 +285,10 @@
   }
   .backup-textpanel-actions button:hover{color:var(--orange);border-color:var(--orange);}
 
-  #pkr-print-overlay{
+  #layout-print-overlay{
     display:none;
   }
-  #pkr-print-overlay.visible{
+  #layout-print-overlay.visible{
     display:block;
     position:fixed;
     inset:0;
@@ -301,9 +301,9 @@
     box-sizing:border-box;
   }
   @media print{
-    body > *:not(#pkr-print-overlay){ display:none !important; }
-    #pkr-print-overlay{ position:static !important; padding:0; }
-    #pkr-print-overlay .no-print{ display:none !important; }
+    body > *:not(#layout-print-overlay){ display:none !important; }
+    #layout-print-overlay{ position:static !important; padding:0; }
+    #layout-print-overlay .no-print{ display:none !important; }
   }
 
   .color-picker-row{
@@ -949,7 +949,7 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="eyebrow">Woodshop Calculations and Layouts</div>
+    <div class="eyebrow">Woodshop/Construction Calculations and Layouts - Version 1.1</div>
     <h1>Shop Assistant<span>.</span></h1>
   </header>
   <div class="tape"></div>
@@ -1238,6 +1238,7 @@
           <div class="line"><span>Interior corner angle</span><b id="pg-interior">–</b></div>
           <div class="line"><span>Outer side length (long point)</span><b class="hi" id="pg-outer-len">–</b></div>
           <div class="line"><span>Inner side length (short point)</span><b id="pg-inner-len">–</b></div>
+          <div class="line"><span>Radius to outer long point</span><b id="pg-outer-radius">–</b></div>
         </div>
         <div class="note">Cut each board to the outer (long-point) length above — that's the edge you mark and gauge from on the saw.</div>
       </div>
@@ -1281,11 +1282,33 @@
         </div>
 
         <div class="result">
-          <div class="line"><span>End cut angle (from square)</span><b class="hi" id="ds-cut">–</b></div>
-          <div class="line"><span>Horizontal pitch (centerline spacing)</span><b id="ds-pitch">–</b></div>
-          <div class="line"><span>Slats across width</span><b id="ds-count">–</b></div>
-          <div class="line"><span>Longest slat length</span><b id="ds-longest">–</b></div>
+          <div class="line"><span>Number of slats</span><b class="hi" id="ds-count">–</b></div>
+          <div class="line"><span>Longest blank length</span><b id="ds-longest">–</b></div>
+          <div class="line"><span>Total length of slats</span><b id="ds-total-length">–</b></div>
         </div>
+
+        <label>Slat Number (starting corner depends on direction/layout — see diagram)</label>
+        <select id="ds-slat-select"></select>
+        <div class="result">
+          <div class="line"><span>Slat blank length</span><b class="hi" id="ds-slat-length">–</b></div>
+
+          <div style="margin-top:12px;font-weight:600;color:var(--chalk);">Left End of Slat</div>
+          <div class="line" style="padding-left:16px;"><span>Attaches to:</span><b id="ds-slat-left-attach">–</b></div>
+          <div class="line" style="padding-left:16px;"><span>Miter Angle:</span><b id="ds-slat-left-angle">–</b></div>
+
+          <div style="margin-top:12px;font-weight:600;color:var(--chalk);">Right End of Slat</div>
+          <div class="line" style="padding-left:16px;"><span>Attaches to:</span><b id="ds-slat-right-attach">–</b></div>
+          <div class="line" style="padding-left:16px;"><span>Miter Angle:</span><b id="ds-slat-right-angle">–</b></div>
+        </div>
+
+        <button type="button" id="ds-print-btn" class="link-btn" style="margin-top:10px;">Print / Save as PDF</button>
+
+        <div class="section-divider">Saved Layouts</div>
+        <div class="shim-row shim-row-new">
+          <input type="text" id="ds-save-name" placeholder="File name (e.g. Garage door slats)">
+          <button type="button" id="ds-save-btn">Save</button>
+        </div>
+        <div id="ds-saved-list"></div>
       </div>
 
     </div>
@@ -1993,6 +2016,8 @@
         <select id="spl-b-select"></select>
         <div class="note" id="spl-b-detail">–</div>
 
+        <button type="button" id="spl-print-btn" class="link-btn" style="margin-top:10px;">Print / Save as PDF</button>
+
         <div class="section-divider">Saved Layouts</div>
         <div class="shim-row shim-row-new">
           <input type="text" id="spl-save-name" placeholder="File name (e.g. Front porch corner)">
@@ -2008,7 +2033,6 @@
         <div class="pk-subtab-btns" id="pk-subtabs">
           <button type="button" class="active" data-sub="pk-rect">Rectangular Pickets</button>
           <button type="button" data-sub="pk-sunburst">SunBurst Pickets</button>
-          <button type="button" data-sub="pk-diagonal">Diagonal Pickets</button>
         </div>
 
         <div class="pk-subpanel active" id="pk-rect">
@@ -2083,6 +2107,8 @@
           <select id="pks-picket-select"></select>
           <div class="note" id="pks-picket-detail">–</div>
 
+          <button type="button" id="pks-print-btn" class="link-btn" style="margin-top:10px;">Print / Save as PDF</button>
+
           <div class="section-divider">Saved Layouts</div>
           <div class="shim-row shim-row-new">
             <input type="text" id="pks-save-name" placeholder="File name (e.g. Garden gate sunburst)">
@@ -2090,20 +2116,16 @@
           </div>
           <div id="pks-saved-list"></div>
         </div>
-
-        <div class="pk-subpanel" id="pk-diagonal">
-          <p class="desc">Diagonal picket layout — inputs and formulas not yet defined. Let me know what you'd like calculated here.</p>
-        </div>
       </div>
 
       <div class="card">
         <h3>Square-Up (3-4-5 Method)</h3>
-        <p class="desc">Enter two adjacent legs — get the diagonal needed to confirm a square corner. Tape Start lets you read cumulative tape values as you run the tape along Leg A, Leg B, then the diagonal, rather than measuring each segment separately. In Decimal or Feet-Inch mode, values accept plain decimals (12.5417) or feet-inch notation (12' 6 1/2", 12-6.5) — Metric mode is decimal only.</p>
+        <p class="desc">Enter two adjacent legs — get the diagonal needed to confirm a square corner. Tape Start lets you read cumulative tape values as you run the tape along Leg A, Leg B, then the diagonal, rather than measuring each segment separately. In Decimal or Feet-Inch mode, values accept plain decimals (12.5417) or feet-inch notation (12' 6 1/2", 12-6.5) — Centimeters mode is decimal only.</p>
 
         <div class="unit-toggle" id="squ345-unit-toggle">
           <button type="button" data-unit="decimal" class="active">Decimal</button>
           <button type="button" data-unit="ftin">Feet-Inch</button>
-          <button type="button" data-unit="metric">Metric</button>
+          <button type="button" data-unit="metric">Centimeters</button>
         </div>
 
         <div class="row">
@@ -2185,6 +2207,8 @@
           <select id="swf-stud-select"></select>
           <div class="note" id="swf-stud-detail">–</div>
 
+          <button type="button" id="swf-print-btn" class="link-btn" style="margin-top:10px;">Print / Save as PDF</button>
+
           <div class="section-divider">Saved Walls</div>
           <div class="shim-row shim-row-new">
             <input type="text" id="swf-save-name" placeholder="File name (e.g. Front wall)">
@@ -2251,6 +2275,8 @@
           <label>Select stud</label>
           <select id="rkw-stud-select"></select>
           <div class="note" id="rkw-stud-detail">–</div>
+
+          <button type="button" id="rkw-print-btn" class="link-btn" style="margin-top:10px;">Print / Save as PDF</button>
 
           <div class="section-divider">Saved Walls</div>
           <div class="shim-row shim-row-new">
@@ -3021,6 +3047,26 @@
           <div><label>Decimal (in)</label><input type="text" id="uc-decimal" inputmode="decimal" placeholder="e.g. 3.5"></div>
           <div><label>Fractional (in)</label><input type="text" id="uc-fraction" inputmode="decimal" placeholder="e.g. 3 1/2"></div>
           <div><label>Millimeters</label><input type="text" id="uc-mm" inputmode="decimal" placeholder="e.g. 88.9"></div>
+        </div>
+        <div class="row-3" style="margin-top:10px;">
+          <div><label>Decimal (ft)</label><input type="text" id="uc-decimalft" inputmode="decimal" placeholder="e.g. 12.5"></div>
+          <div><label>Feet-Inch</label><input type="text" id="uc-ftin" inputmode="decimal" placeholder="e.g. 12' 6&quot;"></div>
+          <div><label>Centimeters</label><input type="text" id="uc-cm" inputmode="decimal" placeholder="e.g. 381"></div>
+        </div>
+        <div class="row-3" style="margin-top:10px;">
+          <div><label>Meter</label><input type="text" id="uc-m" inputmode="decimal" placeholder="e.g. 1"></div>
+          <div><label>Centimeter</label><input type="text" id="uc-cm2" inputmode="decimal" placeholder="e.g. 100"></div>
+          <div><label>Millimeter</label><input type="text" id="uc-mm2" inputmode="decimal" placeholder="e.g. 1000"></div>
+        </div>
+        <div class="row-3" style="margin-top:10px;">
+          <div><label>Gallons</label><input type="text" id="uc-gal" inputmode="decimal" placeholder="e.g. 1"></div>
+          <div><label>Quarts</label><input type="text" id="uc-qt" inputmode="decimal" placeholder="e.g. 4"></div>
+          <div><label>Pints</label><input type="text" id="uc-pt" inputmode="decimal" placeholder="e.g. 8"></div>
+        </div>
+        <div class="row-3" style="margin-top:10px;">
+          <div><label>Pints</label><input type="text" id="uc-pt2" inputmode="decimal" placeholder="e.g. 1"></div>
+          <div><label>Ounces</label><input type="text" id="uc-oz" inputmode="decimal" placeholder="e.g. 16"></div>
+          <div><label>Drops</label><input type="text" id="uc-drops" inputmode="decimal" placeholder="e.g. 9600"></div>
         </div>
       </div>
 
@@ -4079,6 +4125,32 @@
         <label>Notes</label>
         <textarea id="chm-new-notes" rows="2" placeholder="optional" style="width:100%;resize:vertical;font-family:'IBM Plex Sans',sans-serif;background:var(--surface);color:var(--chalk);border:1px solid var(--line);border-radius:2px;padding:8px;box-sizing:border-box;"></textarea>
         <button type="button" id="chm-add-btn">Add Chemical</button>
+      </div>
+
+      <div class="card">
+        <h3>Color Mixing</h3>
+        <p class="desc">Enter a target color and get a suggested mix of up to 3 base colors (Red, Orange, Yellow, Green, Blue, Indigo, Violet, Purple, White, Black) and the percentage of each. This uses a simplified linear color-blend model, not a true pigment simulation — it works well for tinting/shading (adding white or black) and blending nearby hues, but won't correctly predict some pigment-specific results. Treat it as a starting point before test-mixing by eye.</p>
+        <div style="display:flex;gap:8px;">
+          <div>
+            <label for="cmx-target-picker">Pick Color</label>
+            <input type="color" id="cmx-target-picker" value="#7a9b5c" style="width:52px;height:40px;padding:2px;flex-shrink:0;display:block;cursor:pointer;">
+          </div>
+          <div style="flex:1;">
+            <label for="cmx-target-hex">Or Enter Hex Code</label>
+            <input type="text" id="cmx-target-hex" placeholder="#7A9B5C" value="#7A9B5C" style="width:100%;box-sizing:border-box;">
+          </div>
+        </div>
+        <div style="display:flex;gap:16px;align-items:center;margin-top:14px;">
+          <div style="text-align:center;">
+            <div id="cmx-target-swatch" style="width:64px;height:64px;border-radius:4px;border:1px solid var(--line);"></div>
+            <div class="desc" style="margin-top:4px;font-size:11px;">Target</div>
+          </div>
+          <div style="text-align:center;">
+            <div id="cmx-mix-swatch" style="width:64px;height:64px;border-radius:4px;border:1px solid var(--line);"></div>
+            <div class="desc" style="margin-top:4px;font-size:11px;">Closest mix</div>
+          </div>
+        </div>
+        <div id="cmx-results"></div>
       </div>
 
     </div>
@@ -5579,7 +5651,7 @@ function renderPgDiagram(n, widthInches, miterDeg, interiorDeg, outerLen, innerL
 function calcPolygon(){
   const n = parseInt($('pg-sides').value);
   if(!n||n<3){
-    ['pg-miter','pg-interior','pg-outer-len','pg-inner-len'].forEach(id=>$(id).textContent='–');
+    ['pg-miter','pg-interior','pg-outer-len','pg-inner-len','pg-outer-radius'].forEach(id=>$(id).textContent='–');
     renderPgDiagram(0, NaN, NaN, NaN, NaN, NaN, pgUnit);
     return;
   }
@@ -5591,6 +5663,7 @@ function calcPolygon(){
   if(!isFinite(pgWidthInches) || !isFinite(pgLengthInches)){
     $('pg-outer-len').textContent = '–';
     $('pg-inner-len').textContent = '–';
+    $('pg-outer-radius').textContent = '–';
     renderPgDiagram(n, pgWidthInches, miter, interior, NaN, NaN, pgUnit);
     return;
   }
@@ -5606,6 +5679,13 @@ function calcPolygon(){
   }
   $('pg-outer-len').textContent = toLabel(outerLen, pgUnit);
   $('pg-inner-len').textContent = toLabel(innerLen, pgUnit);
+
+  // circumradius: distance from center to each vertex (the outer long
+  // point), for a regular polygon with outer (long-point) side length s:
+  // s = 2*R*sin(pi/n)  ->  R = s / (2*sin(pi/n))
+  const outerRadius = outerLen / (2*Math.sin(Math.PI/n));
+  $('pg-outer-radius').textContent = toLabel(outerRadius, pgUnit);
+
   renderPgDiagram(n, pgWidthInches, miter, interior, outerLen, innerLen, pgUnit);
 }
 
@@ -5668,7 +5748,7 @@ function dsSlatFillMarkup(pwBox, phBox, theta, mirrorX, slatPx, spacingPerp, cli
   return `<clipPath id="${clipId}"><rect x="0" y="0" width="${pwBox.toFixed(1)}" height="${phBox.toFixed(1)}"/></clipPath><g clip-path="url(#${clipId})">${lines}</g>`;
 }
 
-function renderDsDiagram(W, H, angleDeg, slatWIn, gapIn, unit, reversed, split){
+function renderDsDiagram(W, H, angleDeg, slatWIn, gapIn, unit, reversed, split, highlightSlat){
   const box = $('ds-diagram');
   if(!W || !H || !angleDeg || !slatWIn || slatWIn<=0){ box.innerHTML=''; return; }
 
@@ -5695,6 +5775,23 @@ function renderDsDiagram(W, H, angleDeg, slatWIn, gapIn, unit, reversed, split){
     centerLine = `<line x1="${pwHalf.toFixed(1)}" y1="0" x2="${pwHalf.toFixed(1)}" y2="${ph.toFixed(1)}" stroke="var(--orange)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
   }
 
+  // highlight the selected slat, if any, drawn as its true polygon shape
+  // (including any corner notch or taper-to-a-point) rather than a simple
+  // stroke line. The panel's math coordinates (y=0 at the bottom,
+  // matching dsComputeSlatList) need to be flipped to SVG's y=0-at-top
+  // convention used by the panel rect below. Clipped to the panel
+  // rectangle as a safety net against any stray rounding at the edges.
+  let highlightMarkup = '';
+  let highlightClipDef = '';
+  if(highlightSlat && highlightSlat.polygon && highlightSlat.polygon.length >= 2){
+    const toSvgX = mathX => mathX*scale;
+    const toSvgY = mathY => (H-mathY)*scale;
+    const pts = highlightSlat.polygon.map(p => `${toSvgX(p.x).toFixed(1)},${toSvgY(p.y).toFixed(1)}`).join(' ');
+    highlightClipDef = `<clipPath id="dsHighlightClip"><rect x="0" y="0" width="${pw.toFixed(1)}" height="${ph.toFixed(1)}"/></clipPath>`;
+    highlightMarkup = `<g clip-path="url(#dsHighlightClip)"><polygon points="${pts}" fill="var(--orange)" fill-opacity="0.85" stroke="var(--orange)" stroke-width="1.5" stroke-linejoin="round"/></g>`;
+  }
+
+
   const panelBg = `<rect x="0" y="0" width="${pw.toFixed(1)}" height="${ph.toFixed(1)}" fill="var(--surface)"/>`;
   const panelBorder = `<rect x="0" y="0" width="${pw.toFixed(1)}" height="${ph.toFixed(1)}" fill="none" stroke="var(--concrete)" stroke-width="2"/>`;
 
@@ -5704,9 +5801,11 @@ function renderDsDiagram(W, H, angleDeg, slatWIn, gapIn, unit, reversed, split){
   const slatCaption = `<text x="${pw/2}" y="-12" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--orange)">${fmt(angleDeg,0)}° slats — ${toLabel(slatWIn,unit)} wide, ${toLabel(gapIn,unit)} gap — ${modeText}</text>`;
 
   box.innerHTML = `<svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">
+    <defs>${highlightClipDef}</defs>
     <g transform="translate(${padX},${padY})">
       ${panelBg}
       ${fillMarkup}
+      ${highlightMarkup}
       ${centerLine}
       ${panelBorder}
       ${slatCaption}
@@ -5716,32 +5815,548 @@ function renderDsDiagram(W, H, angleDeg, slatWIn, gapIn, unit, reversed, split){
   </svg>`;
 }
 
+// clips the infinite line through (px,py) with direction (dx,dy) against
+// the rectangle [0,W]x[0,H] using the standard Liang-Barsky algorithm.
+// Returns the parameter range {t0,t1} where the line is inside the
+// rectangle, or null if it never enters it.
+function dsClipLineToRect(px, py, dx, dy, W, H){
+  let t0 = -Infinity, t1 = Infinity;
+  const edges = [
+    [-dx, px],       // x >= 0
+    [dx, W - px],    // x <= W
+    [-dy, py],       // y >= 0
+    [dy, H - py]     // y <= H
+  ];
+  for(const [p, q] of edges){
+    if(p === 0){
+      if(q < 0) return null; // parallel to this edge and entirely outside it
+    } else {
+      const r = q / p;
+      if(p < 0){ if(r > t1) return null; if(r > t0) t0 = r; }
+      else { if(r < t0) return null; if(r < t1) t1 = r; }
+    }
+  }
+  if(t0 > t1) return null;
+  return { t0, t1 };
+}
+
+// computes the full numbered slat list for a panelWidth x H rectangle,
+// given the slat angle/pitch/width/direction. Each entry has the slat's
+// blank length and the miter angle at each end (a cut through a
+// horizontal top/bottom edge uses the angle itself; a cut through a
+// vertical side edge uses its complement, matching this app's existing
+// "end cut angle from square" convention).
+//
+// For a "true corner" piece -- one end cut horizontal, the other cut
+// vertical -- the board's real width matters: since a panel-edge-aligned
+// cut isn't perpendicular to the board's own length, the two long edges
+// of the board get clipped to different lengths, and the blank needs to
+// be as long as the longer (outer) edge, not just the centerline.
+// finds the exact centerline x-intercept (x0) where the board's near edge
+// passes through the target corner (cx,cy) -- tries both possible sides
+// and returns whichever one actually touches that corner (near-edge
+// length ~0), rather than assuming a fixed sign, since the correct side
+// depends on both direction and which corner is targeted.
+function dsFindAnchorX0(dx, dy, nx, ny, halfW, cx, cy, panelW, H){
+  for(const s of [1,-1]){
+    const x0 = cx - dx*cy/dy + s*halfW/dy;
+    const clip = dsClipLineToRect(x0, 0, dx, dy, panelW, H);
+    if(!clip) continue;
+    if(clip.t1-clip.t0 <= 1e-6) continue;
+    const clipA = dsClipLineToRect(x0-nx*halfW, -ny*halfW, dx, dy, panelW, H);
+    const clipB = dsClipLineToRect(x0+nx*halfW, ny*halfW, dx, dy, panelW, H);
+    const lenA = clipA ? (clipA.t1-clipA.t0) : 0;
+    const lenB = clipB ? (clipB.t1-clipB.t0) : 0;
+    if(Math.min(lenA,lenB) < 1e-3) return x0; // this side actually touches the corner
+  }
+  return cx; // fallback (shouldn't normally be reached)
+}
+
+// computes the full numbered slat list for a panelWidth x H rectangle,
+// given the slat angle/pitch/width/direction, numbered starting from
+// whichever corner (cornerX,cornerY) is nearest. Each entry has the
+// slat's blank length and the miter angle at each end (a cut through a
+// horizontal top/bottom edge uses the angle itself; a cut through a
+// vertical side edge uses its complement, matching this app's existing
+// "end cut angle from square" convention).
+//
+// For a "true corner" piece -- one end cut horizontal, the other cut
+// vertical -- the board's real width matters: since a panel-edge-aligned
+// cut isn't perpendicular to the board's own length, the two long edges
+// of the board get clipped to different lengths, and the blank needs to
+// be as long as the longer (outer) edge, not just the centerline.
+function dsComputeSlatList(panelW, H, angleDeg, pitch, slatWidth, reversed, cornerX, cornerY){
+  const angr = rad(angleDeg);
+  const mirrorX = reversed ? -1 : 1;
+  const dx = Math.cos(angr) * mirrorX, dy = Math.sin(angr);
+  const nx = -dy, ny = dx; // unit normal, perpendicular to (dx,dy)
+  const halfW = slatWidth/2;
+  const EPS = 1e-6;
+
+  // x-intercept at y=0 (extrapolated) ranges over which the line still
+  // clips something inside the panel, for either direction
+  const spanX = H * (Math.cos(angr)/Math.sin(angr)); // H*cot(angle)
+  const x0min = mirrorX>0 ? -spanX : 0;
+  const x0max = mirrorX>0 ? panelW : panelW + spanX;
+
+  // Anchor the whole sampling grid to the exact position where the near
+  // edge of the board would pass through the target corner -- this
+  // guarantees the boundary case is actually included as a sample point,
+  // rather than merely approximated by whichever arbitrarily-phased
+  // sample happens to land closest to it.
+  const x0Anchor = dsFindAnchorX0(dx, dy, nx, ny, halfW, cornerX, cornerY, panelW, H);
+  const kLow = Math.floor((x0Anchor - (x0max+pitch)) / pitch);
+  const kHigh = Math.ceil((x0Anchor - (x0min-pitch)) / pitch);
+
+  const slats = [];
+  const sin2overcos = Math.sin(angr)*Math.sin(angr)/Math.cos(angr);
+  const isHorizPt = (px,py) => Math.abs(py-0)<EPS || Math.abs(py-H)<EPS;
+  const isVertPt = (px,py) => Math.abs(px-0)<EPS || Math.abs(px-panelW)<EPS;
+
+  for(let k = kLow; k <= kHigh; k++){
+    const x0 = x0Anchor - k*pitch;
+
+    // The board's actual blank length is the distance between its two
+    // extreme "long points" -- not simply the longest of the three
+    // parallel candidate lines' own clipped lengths. When both ends are
+    // the same cut type (e.g. both sides), the two long points land on
+    // *opposite* edges of the board, so the correct length is the span
+    // between whichever point extends furthest at each end, measured in
+    // one shared parametrization along the board's direction (not each
+    // candidate's own, separately-clipped range).
+    const nearStart = { sx: x0+nx*halfW, sy: ny*halfW };
+    const farStart = { sx: x0-nx*halfW, sy: -ny*halfW };
+    const clipCenter = dsClipLineToRect(x0, 0, dx, dy, panelW, H);
+    const clipNear = dsClipLineToRect(nearStart.sx, nearStart.sy, dx, dy, panelW, H);
+    const clipFar = dsClipLineToRect(farStart.sx, farStart.sy, dx, dy, panelW, H);
+
+    const items = [];
+    if(clipCenter) items.push({ sx:x0, sy:0, clip:clipCenter });
+    if(clipNear) items.push({ sx:nearStart.sx, sy:nearStart.sy, clip:clipNear });
+    if(clipFar) items.push({ sx:farStart.sx, sy:farStart.sy, clip:clipFar });
+    if(!items.length) continue;
+
+    let lowT = Infinity, boundaryLowPt = null, highT = -Infinity, boundaryHighPt = null;
+    for(const c of items){
+      const offset = (c.sx-x0)*dx + (c.sy-0)*dy; // converts this candidate's own t into the shared (x0,0)-relative parametrization
+      const t0c = c.clip.t0 + offset, t1c = c.clip.t1 + offset;
+      if(t0c < lowT){ lowT = t0c; boundaryLowPt = { x: c.sx+c.clip.t0*dx, y: c.sy+c.clip.t0*dy }; }
+      if(t1c > highT){ highT = t1c; boundaryHighPt = { x: c.sx+c.clip.t1*dx, y: c.sy+c.clip.t1*dy }; }
+    }
+    if(!boundaryLowPt || !boundaryHighPt) continue;
+    let blankLen = highT - lowT;
+    if(blankLen <= EPS) continue;
+
+    // Notch correction: at a corner where the board's width straddles the
+    // panel's edge, the near and far edges touch *different* boundary
+    // types (one horizontal, one vertical) at the same end -- the true
+    // material is notched around that corner. The correct blank length
+    // there is not a position-dependent recalculation; it's the FIXED
+    // "clean" length for this slat's overall type (which is the same for
+    // every non-notched position of that type), minus a correction of
+    // (sin^2(angle)/cos(angle)) times the horizontal-touching edge's own
+    // distance from that corner.
+    function isExclusiveH(p){ return isHorizPt(p.x,p.y) && !isVertPt(p.x,p.y); }
+    function isExclusiveV(p){ return isVertPt(p.x,p.y) && !isHorizPt(p.x,p.y); }
+    function notchAmount(nearPt, farPt){
+      if(!nearPt || !farPt) return 0;
+      if(isExclusiveH(nearPt) && isExclusiveV(farPt)) return sin2overcos * Math.min(nearPt.x, panelW-nearPt.x);
+      if(isExclusiveV(nearPt) && isExclusiveH(farPt)) return sin2overcos * Math.min(farPt.x, panelW-farPt.x);
+      return 0;
+    }
+    const nearEntry = clipNear ? { x:nearStart.sx+clipNear.t0*dx, y:nearStart.sy+clipNear.t0*dy } : null;
+    const farEntry = clipFar ? { x:farStart.sx+clipFar.t0*dx, y:farStart.sy+clipFar.t0*dy } : null;
+    const nearExit = clipNear ? { x:nearStart.sx+clipNear.t1*dx, y:nearStart.sy+clipNear.t1*dy } : null;
+    const farExit = clipFar ? { x:farStart.sx+clipFar.t1*dx, y:farStart.sy+clipFar.t1*dy } : null;
+    const nearOk = nearEntry && nearExit, farOk = farEntry && farExit;
+
+    // Whether each end is a genuine corner notch (near and far touch
+    // different boundary types at that same end) -- only meaningful when
+    // both edges actually reach the panel there.
+    const lowIsNotch = nearOk && farOk && ((isExclusiveH(nearEntry)&&isExclusiveV(farEntry)) || (isExclusiveV(nearEntry)&&isExclusiveH(farEntry)));
+    const highIsNotch = nearOk && farOk && ((isExclusiveH(nearExit)&&isExclusiveV(farExit)) || (isExclusiveV(nearExit)&&isExclusiveH(farExit)));
+    // If one whole edge never reaches the panel at all, the entire piece
+    // is a taper-to-a-point corner triangle, not describable as two
+    // independent straight cuts -- both ends are corner-governed.
+    const isCornerTriangle = !(nearOk && farOk);
+
+    // Builds the slat's actual polygon outline. Where the material is
+    // notched around a corner (near and far touch different boundary
+    // types at the same end) or tapers to a point at a corner (one whole
+    // edge never enters the panel), the panel's own corner point is
+    // inserted as an extra vertex -- it's a genuine corner of the true
+    // shape, not just an artifact of how the edges were clipped.
+    function notchCorner(p1, p2){
+      const p1V = isExclusiveV(p1), p1H = isExclusiveH(p1);
+      const p2V = isExclusiveV(p2), p2H = isExclusiveH(p2);
+      if(p1V && p2H) return {x:p1.x, y:p2.y};
+      if(p1H && p2V) return {x:p2.x, y:p1.y};
+      return null;
+    }
+    function buildPolygon(){
+      if(nearOk && farOk){
+        const lowVerts = lowIsNotch ? [nearEntry, notchCorner(nearEntry,farEntry), farEntry] : [nearEntry, farEntry];
+        const highVerts = highIsNotch ? [nearExit, notchCorner(nearExit,farExit), farExit] : [nearExit, farExit];
+        return [...lowVerts, ...highVerts.slice().reverse()];
+      }
+      if(nearOk && !farOk){
+        const corner = notchCorner(nearEntry, nearExit);
+        return corner ? [nearEntry, corner, nearExit] : [nearEntry, nearExit];
+      }
+      if(!nearOk && farOk){
+        const corner = notchCorner(farEntry, farExit);
+        return corner ? [farEntry, corner, farExit] : [farEntry, farExit];
+      }
+      return [];
+    }
+    const polygon = buildPolygon();
+
+    // Human-readable location for each end: which side of the panel that
+    // end of the board actually rests against, or "Corner" when it's
+    // governed by a panel corner instead of a single straight edge.
+    function locationOf(pt, isNotch){
+      if(isCornerTriangle || isNotch) return 'Corner';
+      if(Math.abs(pt.y-0)<EPS || Math.abs(pt.y-H)<EPS) return Math.abs(pt.y-0)<EPS ? 'Bottom' : 'Top';
+      return 'Side';
+    }
+
+    const lowNotch = notchAmount(nearEntry, farEntry);
+    const highNotch = notchAmount(nearExit, farExit);
+
+    if(lowNotch > EPS || highNotch > EPS){
+      // determine the overall clean type (both-sides vs both-top/bottom)
+      // from whichever end ISN'T notched, since that end's boundary type
+      // still reflects the slat's true overall orientation.
+      const refPt = lowNotch > EPS ? boundaryHighPt : boundaryLowPt;
+      const isCleanVV = isVertPt(refPt.x, refPt.y);
+      const cleanFormula = isCleanVV
+        ? panelW/Math.cos(angr) + Math.tan(angr)*slatWidth
+        : H/Math.sin(angr) + (Math.cos(angr)/Math.sin(angr))*slatWidth;
+      blankLen = cleanFormula - lowNotch - highNotch;
+
+      // lowT/highT must be pulled in to match this corrected length, or
+      // the displayed length and the diagram highlight will disagree.
+      // Anchor whichever end ISN'T notched at its original position, and
+      // place the other end exactly blankLen away from it (not from the
+      // old, uncorrected span, which is a different number).
+      if(lowNotch > EPS && highNotch <= EPS){
+        lowT = highT - blankLen;
+      } else if(highNotch > EPS && lowNotch <= EPS){
+        highT = lowT + blankLen;
+      } else {
+        // both ends notched (rare) -- no single end to anchor to exactly,
+        // so center the corrected span on the original midpoint instead.
+        const mid = (lowT+highT)/2;
+        lowT = mid - blankLen/2;
+        highT = mid + blankLen/2;
+      }
+    }
+    if(blankLen <= EPS) continue;
+
+    // The diagram highlight is drawn along the CENTERLINE's own position
+    // at these t-values, not by connecting boundaryLowPt to
+    // boundaryHighPt directly -- those two points can sit on different,
+    // width-offset parallel edges (near vs far), and a straight line
+    // between two different parallel-offset lines is not the same length
+    // as the true along-board distance (t1-t0) between them. Using the
+    // centerline guarantees the highlight's drawn length always exactly
+    // matches the displayed blank length.
+    const x1 = x0 + lowT*dx, y1 = lowT*dy;
+    const x2 = x0 + highT*dx, y2 = highT*dy;
+    const bottomIsHoriz = isHorizPt(boundaryLowPt.x, boundaryLowPt.y);
+    const topIsHoriz = isHorizPt(boundaryHighPt.x, boundaryHighPt.y);
+    const bottomAngle = bottomIsHoriz ? (90-angleDeg) : angleDeg;
+    const topAngle = topIsHoriz ? (90-angleDeg) : angleDeg;
+
+    const bottomLocation = locationOf(boundaryLowPt, lowIsNotch);
+    const topLocation = locationOf(boundaryHighPt, highIsNotch);
+
+    slats.push({ length: blankLen, bottomAngle, topAngle, bottomLocation, topLocation, x0, x1, y1, x2, y2, polygon });
+  }
+
+  // number starting from the slat closest to the target corner, sweeping
+  // outward from there -- distance from the anchor position tracks
+  // distance from that corner directly, since all slats share the same
+  // direction.
+  slats.sort((a,b)=>Math.abs(a.x0-x0Anchor) - Math.abs(b.x0-x0Anchor));
+  return slats;
+}
+
+let dsSlats = [];
+
+function dsPopulateSlatSelect(){
+  const sel = $('ds-slat-select');
+  sel.innerHTML = '';
+  dsSlats.forEach((s,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = 'Slat ' + (i+1);
+    sel.appendChild(opt);
+  });
+  dsShowSlatDetail();
+}
+
+let dsLastRenderParams = null; // reused by dsShowSlatDetail to re-render with a new highlight
+
+function dsShowSlatDetail(){
+  const sel = $('ds-slat-select');
+  const i = parseInt(sel.value);
+  const s = dsSlats[i];
+  if(!s){
+    $('ds-slat-length').textContent = '–';
+    $('ds-slat-left-attach').textContent = '–';
+    $('ds-slat-left-angle').textContent = '–';
+    $('ds-slat-right-attach').textContent = '–';
+    $('ds-slat-right-angle').textContent = '–';
+  } else {
+    $('ds-slat-length').textContent = toLabel(s.length, dsUnit);
+    // "low"/"high" (the internal along-length ends) don't always
+    // correspond to physical left/right -- whichever end has the
+    // smaller x-coordinate is the one actually on the left.
+    const lowIsLeft = s.x1 <= s.x2;
+    const leftAttach = lowIsLeft ? s.bottomLocation : s.topLocation;
+    const leftAngle = lowIsLeft ? s.bottomAngle : s.topAngle;
+    const rightAttach = lowIsLeft ? s.topLocation : s.bottomLocation;
+    const rightAngle = lowIsLeft ? s.topAngle : s.bottomAngle;
+    $('ds-slat-left-attach').textContent = leftAttach;
+    $('ds-slat-left-angle').textContent = fmt(leftAngle,1) + '°';
+    $('ds-slat-right-attach').textContent = rightAttach;
+    $('ds-slat-right-angle').textContent = fmt(rightAngle,1) + '°';
+  }
+  if(dsLastRenderParams){
+    const p = dsLastRenderParams;
+    renderDsDiagram(p.W, p.H, p.ang, p.sw, p.gap, p.unit, p.reversed, p.split, s || null);
+  }
+}
+$('ds-slat-select').addEventListener('change', dsShowSlatDetail);
+
 function calcDiagonalSlats(){
   const W=dsWidthInches, H=dsHeightInches, ang=parseFloat($('ds-angle').value),
         sw=dsSlatWInches, gap=isFinite(dsGapInches)?dsGapInches:0;
   if(!W||!H||!ang||!sw){
-    ['ds-cut','ds-pitch','ds-count','ds-longest'].forEach(id=>$(id).textContent='–');
-    renderDsDiagram(0,0,0,0,0,dsUnit,dsReversed,dsSplit);
+    ['ds-count','ds-longest','ds-total-length'].forEach(id=>$(id).textContent='–');
+    dsSlats = [];
+    dsLastRenderParams = { W:0, H:0, ang:0, sw:0, gap:0, unit:dsUnit, reversed:dsReversed, split:dsSplit };
+    dsPopulateSlatSelect();
     return;
   }
   const angr = rad(ang);
   const pitch = (sw+gap)/Math.sin(angr);
-  const longest = H/Math.sin(angr);
 
-  let count;
   if(dsSplit){
-    const perHalf = Math.ceil((W/2)/pitch)+1;
-    count = perHalf*2;
+    // Standard: each half starts at its own bottom corner nearest the
+    // centerline (left half's bottom-right, right half's bottom-left).
+    // Reversed: each half starts at its own top corner nearest the
+    // centerline (left half's top-right, right half's top-left).
+    const halfW = W/2;
+    const anchorX = halfW, anchorY = dsReversed ? H : 0;
+    const half = dsComputeSlatList(halfW, H, ang, pitch, sw, dsReversed, anchorX, anchorY);
+    // right half is a mirror image of the left -- same lengths/angles, but
+    // its coordinates need to be reflected into the right side of the full
+    // W-wide panel (mirrored across the centerline at W/2) so the diagram
+    // can highlight it in the correct position
+    const rightHalf = half.map(s=>({
+      ...s,
+      x1: W - s.x1, x2: W - s.x2,
+      polygon: s.polygon.map(p=>({ x: W - p.x, y: p.y }))
+    }));
+    dsSlats = half.concat(rightHalf);
   } else {
-    count = Math.ceil(W/pitch)+1;
+    // Standard starts at the lower-right corner of the full panel;
+    // reversed starts at the lower-left corner instead.
+    const anchorX = dsReversed ? 0 : W, anchorY = 0;
+    dsSlats = dsComputeSlatList(W, H, ang, pitch, sw, dsReversed, anchorX, anchorY);
   }
 
-  $('ds-cut').textContent = fmt(ang,1) + '°';
-  $('ds-pitch').textContent = toLabel(pitch, dsUnit);
-  $('ds-count').textContent = count + (dsSplit ? ' (both halves)' : '');
-  $('ds-longest').textContent = toLabel(longest, dsUnit);
-  renderDsDiagram(W, H, ang, sw, gap, dsUnit, dsReversed, dsSplit);
+  const longest = dsSlats.length ? Math.max(...dsSlats.map(s=>s.length)) : NaN;
+  $('ds-count').textContent = dsSlats.length + (dsSplit ? ' (both halves)' : '');
+  $('ds-longest').textContent = isFinite(longest) ? toLabel(longest, dsUnit) : '–';
+  const totalLength = dsSlats.reduce((sum,s)=>sum+s.length, 0);
+  $('ds-total-length').textContent = dsSlats.length ? toLabel(totalLength, dsUnit) : '–';
+
+  dsLastRenderParams = { W, H, ang, sw, gap, unit:dsUnit, reversed:dsReversed, split:dsSplit };
+  dsPopulateSlatSelect(); // this also calls dsShowSlatDetail, which renders the diagram with the current highlight
 }
+
+function dsPrintLayout(){
+  if(!dsSlats.length){
+    alert('Enter panel width, height, angle, and slat width to compute a layout first.');
+    return;
+  }
+  const dirLabel = dsReversed ? '＼ Reversed' : '／ Standard';
+  const layoutLabel = dsSplit ? 'Split in half (mirrored)' : 'Single panel';
+  const gap = isFinite(dsGapInches) ? dsGapInches : 0;
+  const longest = Math.max(...dsSlats.map(s=>s.length));
+  const totalLength = dsSlats.reduce((sum,s)=>sum+s.length, 0);
+
+  const rowsHtml = dsSlats.map((s,i)=>{
+    const lowIsLeft = s.x1 <= s.x2;
+    const leftAttach = lowIsLeft ? s.bottomLocation : s.topLocation;
+    const leftAngle = lowIsLeft ? s.bottomAngle : s.topAngle;
+    const rightAttach = lowIsLeft ? s.topLocation : s.bottomLocation;
+    const rightAngle = lowIsLeft ? s.topAngle : s.bottomAngle;
+    return '<tr><td style="' + LP_TD_ROW + '">Slat ' + (i+1) + '</td><td style="' + LP_TD_ROW + '">' + toLabel(s.length, dsUnit) + '</td><td style="' + LP_TD_ROW + '">' + leftAttach + '</td><td style="' + LP_TD_ROW + '">' + fmt(leftAngle,1) + '°</td><td style="' + LP_TD_ROW + '">' + rightAttach + '</td><td style="' + LP_TD_ROW + '">' + fmt(rightAngle,1) + '°</td></tr>';
+  }).join('');
+
+  const plainTextLines = [];
+  plainTextLines.push('DIAGONAL SLATS');
+  plainTextLines.push('Generated by Shop Assistant — ' + new Date().toLocaleString());
+  plainTextLines.push('');
+  plainTextLines.push('INPUTS');
+  plainTextLines.push('Panel width: ' + toLabel(dsWidthInches, dsUnit));
+  plainTextLines.push('Panel height: ' + toLabel(dsHeightInches, dsUnit));
+  plainTextLines.push('Slat angle: ' + fmt(parseFloat($('ds-angle').value),2) + '° from horizontal');
+  plainTextLines.push('Slat width: ' + toLabel(dsSlatWInches, dsUnit));
+  plainTextLines.push('Gap between slats: ' + toLabel(gap, dsUnit));
+  plainTextLines.push('Slat direction: ' + dirLabel);
+  plainTextLines.push('Layout: ' + layoutLabel);
+  plainTextLines.push('Number of slats: ' + dsSlats.length + (dsSplit ? ' (both halves)' : ''));
+  plainTextLines.push('Longest blank length: ' + toLabel(longest, dsUnit));
+  plainTextLines.push('Total length of slats: ' + toLabel(totalLength, dsUnit));
+  plainTextLines.push('');
+  plainTextLines.push('SLAT DETAIL');
+  dsSlats.forEach((s,i)=>{
+    const lowIsLeft = s.x1 <= s.x2;
+    const leftAttach = lowIsLeft ? s.bottomLocation : s.topLocation;
+    const leftAngle = lowIsLeft ? s.bottomAngle : s.topAngle;
+    const rightAttach = lowIsLeft ? s.topLocation : s.bottomLocation;
+    const rightAngle = lowIsLeft ? s.topAngle : s.bottomAngle;
+    plainTextLines.push('Slat ' + (i+1) + ' - Length: ' + toLabel(s.length, dsUnit) + ' - Left: ' + leftAttach + ' @ ' + fmt(leftAngle,1) + '° - Right: ' + rightAttach + ' @ ' + fmt(rightAngle,1) + '°');
+  });
+  const plainText = plainTextLines.join('\n');
+
+  const contentHtml = `
+    ${lpTitle('Diagonal Slats')}
+    ${lpSectionHeading('Inputs')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      <tr><td style="${LP_TD_LABEL}">Panel width</td><td style="${LP_TD_VALUE}">${toLabel(dsWidthInches, dsUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Panel height</td><td style="${LP_TD_VALUE}">${toLabel(dsHeightInches, dsUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Slat angle</td><td style="${LP_TD_VALUE}">${fmt(parseFloat($('ds-angle').value),2)}° from horizontal</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Slat width</td><td style="${LP_TD_VALUE}">${toLabel(dsSlatWInches, dsUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Gap between slats</td><td style="${LP_TD_VALUE}">${toLabel(gap, dsUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Slat direction</td><td style="${LP_TD_VALUE}">${dirLabel}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Layout</td><td style="${LP_TD_VALUE}">${layoutLabel}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Number of slats</td><td style="${LP_TD_VALUE}">${dsSlats.length}${dsSplit ? ' (both halves)' : ''}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Longest blank length</td><td style="${LP_TD_VALUE}">${toLabel(longest, dsUnit)}</td></tr>
+      <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Total length of slats</td><td style="padding:4px 8px;font-size:13px;color:#111;">${toLabel(totalLength, dsUnit)}</td></tr>
+    </table>
+    ${lpSectionHeading('Slat Detail')}
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><th style="${LP_TH}">Slat</th><th style="${LP_TH}">Blank Length</th><th style="${LP_TH}">Left Attaches To</th><th style="${LP_TH}">Left Miter</th><th style="${LP_TH}">Right Attaches To</th><th style="${LP_TH}">Right Miter</th></tr>
+      ${rowsHtml}
+    </table>
+  `;
+
+  layoutShowPrintOverlay(contentHtml, plainText);
+}
+$('ds-print-btn').addEventListener('click', dsPrintLayout);
+
+const DS_SAVE_KEY = 'diagonal-slats-saves';
+let dsSavedFiles = [];
+const DS_FIELDS = ['ds-width','ds-height','ds-angle','ds-slatw','ds-gap'];
+
+function dsGenSaveId(){ return 'ds' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+async function dsPersistSaves(){
+  try{ await persist.set(DS_SAVE_KEY, JSON.stringify({ files: dsSavedFiles }), false); }
+  catch(e){ console.error('Diagonal Slats save failed', e); }
+}
+
+async function dsLoadSaves(){
+  try{
+    const result = await persist.get(DS_SAVE_KEY, false);
+    if(result && result.value){
+      const parsed = JSON.parse(result.value);
+      if(parsed && Array.isArray(parsed.files)) dsSavedFiles = parsed.files;
+    }
+  }catch(e){
+    // no saves yet
+  }
+  dsRenderSavedList();
+}
+
+function dsCurrentStateSnapshot(){
+  const fields = {};
+  DS_FIELDS.forEach(id=>{ fields[id] = $(id).value; });
+  return { unit: dsUnit, reversed: dsReversed, split: dsSplit, fields };
+}
+
+function dsApplyStateSnapshot(data){
+  dsUnit = data.unit || 'decimal';
+  document.querySelectorAll('#ds-unit-toggle button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.unit === dsUnit);
+  });
+  dsReversed = !!data.reversed;
+  document.querySelectorAll('#ds-direction-toggle button').forEach(b=>{
+    b.classList.toggle('active', (b.dataset.dir==='reversed') === dsReversed);
+  });
+  dsSplit = !!data.split;
+  document.querySelectorAll('#ds-split-toggle button').forEach(b=>{
+    b.classList.toggle('active', (b.dataset.split==='on') === dsSplit);
+  });
+  if(data.fields) Object.entries(data.fields).forEach(([id,val])=>{ if($(id)) $(id).value = val; });
+  // restoring field values above doesn't fire their 'input' listeners, so
+  // the underlying canonical-inches state variables need updating here too
+  const wv = parseLengthInput($('ds-width').value, dsUnit);
+  if(isFinite(wv) && wv>0) dsWidthInches = wv;
+  const hv = parseLengthInput($('ds-height').value, dsUnit);
+  if(isFinite(hv) && hv>0) dsHeightInches = hv;
+  const swv = parseLengthInput($('ds-slatw').value, dsUnit);
+  if(isFinite(swv) && swv>0) dsSlatWInches = swv;
+  const gv = parseLengthInput($('ds-gap').value, dsUnit);
+  dsGapInches = isFinite(gv) ? gv : 0;
+  calcDiagonalSlats();
+}
+
+function dsRenderSavedList(){
+  const list = $('ds-saved-list');
+  list.innerHTML = '';
+  if(!dsSavedFiles.length){
+    const p = document.createElement('div');
+    p.className = 'blade-empty';
+    p.textContent = 'No saved layouts yet.';
+    list.appendChild(p);
+    return;
+  }
+  dsSavedFiles.slice().sort((a,b)=>b.savedAt-a.savedAt).forEach(f=>{
+    const row = document.createElement('div');
+    row.className = 'saved-row';
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'saved-name';
+    const dateStr = new Date(f.savedAt).toLocaleString();
+    nameDiv.innerHTML = pfEscapeHtml(f.name) + '<span class="saved-date">' + dateStr + '</span>';
+
+    const loadBtn = document.createElement('button');
+    loadBtn.type = 'button'; loadBtn.className = 'load-btn'; loadBtn.textContent = 'Load';
+    loadBtn.addEventListener('click', ()=>{ dsApplyStateSnapshot(f.data); });
+
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button'; delBtn.className = 'del-btn'; delBtn.textContent = '✕'; delBtn.title = 'Delete';
+    delBtn.addEventListener('click', ()=>{
+      dsSavedFiles = dsSavedFiles.filter(x=>x.id!==f.id);
+      dsPersistSaves();
+      dsRenderSavedList();
+    });
+
+    row.appendChild(nameDiv);
+    row.appendChild(loadBtn);
+    row.appendChild(delBtn);
+    list.appendChild(row);
+  });
+}
+
+$('ds-save-btn').addEventListener('click', ()=>{
+  const nameEl = $('ds-save-name');
+  const name = nameEl.value.trim();
+  if(!name) return;
+  dsSavedFiles.push({ id: dsGenSaveId(), name, savedAt: Date.now(), data: dsCurrentStateSnapshot() });
+  dsPersistSaves();
+  nameEl.value = '';
+  dsRenderSavedList();
+});
+
+dsLoadSaves();
 
 $('ds-angle').addEventListener('input', calcDiagonalSlats);
 
@@ -8744,12 +9359,12 @@ function sq345FeetToFtIn(feetVal){
 
 function sq345FmtValue(feetVal){
   if(sq345Unit==='ftin') return sq345FeetToFtIn(feetVal);
-  if(sq345Unit==='metric') return fmt(feetVal/SHAPE_UNIT_TO_FEET.m, 3) + ' m';
+  if(sq345Unit==='metric') return fmt(feetVal/(SHAPE_UNIT_TO_FEET.m/100), 2) + ' cm';
   return fmt(feetVal,3) + ' ft';
 }
 
 function sq345UpdateLabels(){
-  const suffix = sq345Unit==='metric' ? ' (m)' : ' (ft)';
+  const suffix = sq345Unit==='metric' ? ' (cm)' : ' (ft)';
   $('sq-a-label').textContent = 'Leg A' + suffix;
   $('sq-b-label').textContent = 'Leg B' + suffix;
   $('sq-tapestart-label').textContent = 'Tape start' + suffix;
@@ -8763,14 +9378,14 @@ document.querySelectorAll('#squ345-unit-toggle button').forEach(btn=>{
     const newIsMetric = newUnit==='metric';
 
     if(oldWasMetric !== newIsMetric){
-      // convert stored input values between feet and meters as the input's
-      // base unit changes; decimal <-> feet-inch both use feet, so no
-      // conversion is needed between those two
+      // convert stored input values between feet and centimeters as the
+      // input's base unit changes; decimal <-> feet-inch both use feet, so
+      // no conversion is needed between those two
       ['sq-a','sq-b','sq-tapestart'].forEach(id=>{
         const raw = sq345ParseInput($(id).value);
         if(raw===null) return;
-        const feetVal = oldWasMetric ? raw*SHAPE_UNIT_TO_FEET.m : raw;
-        const newVal = newIsMetric ? feetVal/SHAPE_UNIT_TO_FEET.m : feetVal;
+        const feetVal = oldWasMetric ? raw*(SHAPE_UNIT_TO_FEET.m/100) : raw;
+        const newVal = newIsMetric ? feetVal/(SHAPE_UNIT_TO_FEET.m/100) : feetVal;
         $(id).value = fmt(newVal,4);
       });
     }
@@ -8792,7 +9407,7 @@ function sq345Calc(){
     return;
   }
   // work in feet internally regardless of display unit
-  const toFeet = v => sq345Unit==='metric' ? v*SHAPE_UNIT_TO_FEET.m : v;
+  const toFeet = v => sq345Unit==='metric' ? v*(SHAPE_UNIT_TO_FEET.m/100) : v;
   const a=toFeet(aRaw), b=toFeet(bRaw), tapeStart=toFeet(tapeStartRaw);
 
   const diag = Math.sqrt(a*a+b*b);
@@ -9376,6 +9991,79 @@ function splShowDetail(which){
 $('spl-a-select').addEventListener('change', ()=>splShowDetail('a'));
 $('spl-b-select').addEventListener('change', ()=>splShowDetail('b'));
 
+function splPrintLayout(){
+  if(!splRailAData || !splRailBData){
+    alert('Enter all dimensions to compute a layout first.');
+    return;
+  }
+  const jointSelect = $('spl-joint');
+  const jointLabel = jointSelect.options[jointSelect.selectedIndex].text;
+  const totalA = splRailAData.N;
+  const totalB = splRailBData.totalCount;
+
+  const rowsHtml = [];
+  for(let i=1; i<=totalA; i++){
+    const dist = splRailAData.startPos + (i-1)*splRailAData.spacing;
+    rowsHtml.push('<tr><td style="' + LP_TD_ROW + '">A' + i + (i===1?' (corner)':'') + '</td><td style="' + LP_TD_ROW + '">Dist. from left end of Rail A</td><td style="' + LP_TD_ROW + '">' + toLabel(dist, splUnit) + '</td></tr>');
+  }
+  for(let i=1; i<=splRailBData.distances.length; i++){
+    const dist = splRailBData.distances[i-1];
+    rowsHtml.push('<tr><td style="' + LP_TD_ROW + '">B' + i + '</td><td style="' + LP_TD_ROW + '">Dist. from right end of Rail B</td><td style="' + LP_TD_ROW + '">' + toLabel(dist, splUnit) + '</td></tr>');
+  }
+
+  const plainTextLines = [];
+  plainTextLines.push('SPINDLE LAYOUT');
+  plainTextLines.push('Generated by Shop Assistant — ' + new Date().toLocaleString());
+  plainTextLines.push('');
+  plainTextLines.push('INPUTS');
+  plainTextLines.push('Rail A length: ' + toLabel(parseLengthInput($('spl-raila').value, splUnit), splUnit));
+  plainTextLines.push('Rail B length: ' + toLabel(parseLengthInput($('spl-railb').value, splUnit), splUnit));
+  plainTextLines.push('Gap A: ' + toLabel(parseLengthInput($('spl-gapa').value, splUnit), splUnit));
+  plainTextLines.push('Gap B: ' + toLabel(parseLengthInput($('spl-gapb').value, splUnit), splUnit));
+  plainTextLines.push('Rail width: ' + toLabel(parseLengthInput($('spl-railwidth').value, splUnit), splUnit));
+  plainTextLines.push('Spindle width: ' + toLabel(parseLengthInput($('spl-spindlewidth').value, splUnit), splUnit));
+  plainTextLines.push('Target spacing: ' + toLabel(parseLengthInput($('spl-target').value, splUnit), splUnit));
+  plainTextLines.push('Joint type: ' + jointLabel);
+  plainTextLines.push('Total Rail A spindles: ' + totalA);
+  plainTextLines.push('Total Rail B spindles: ' + totalB);
+  plainTextLines.push('');
+  plainTextLines.push('SPINDLE POSITIONS');
+  for(let i=1; i<=totalA; i++){
+    const dist = splRailAData.startPos + (i-1)*splRailAData.spacing;
+    plainTextLines.push('A' + i + (i===1?' (corner)':'') + ' - Dist. from left end of Rail A - ' + toLabel(dist, splUnit));
+  }
+  for(let i=1; i<=splRailBData.distances.length; i++){
+    const dist = splRailBData.distances[i-1];
+    plainTextLines.push('B' + i + ' - Dist. from right end of Rail B - ' + toLabel(dist, splUnit));
+  }
+  const plainText = plainTextLines.join('\n');
+
+  const contentHtml = `
+    ${lpTitle('Spindle Layout')}
+    ${lpSectionHeading('Inputs')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      <tr><td style="${LP_TD_LABEL}">Rail A length</td><td style="${LP_TD_VALUE}">${toLabel(parseLengthInput($('spl-raila').value, splUnit), splUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Rail B length</td><td style="${LP_TD_VALUE}">${toLabel(parseLengthInput($('spl-railb').value, splUnit), splUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Gap A</td><td style="${LP_TD_VALUE}">${toLabel(parseLengthInput($('spl-gapa').value, splUnit), splUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Gap B</td><td style="${LP_TD_VALUE}">${toLabel(parseLengthInput($('spl-gapb').value, splUnit), splUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Rail width</td><td style="${LP_TD_VALUE}">${toLabel(parseLengthInput($('spl-railwidth').value, splUnit), splUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Spindle width</td><td style="${LP_TD_VALUE}">${toLabel(parseLengthInput($('spl-spindlewidth').value, splUnit), splUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Target spacing</td><td style="${LP_TD_VALUE}">${toLabel(parseLengthInput($('spl-target').value, splUnit), splUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Joint type</td><td style="${LP_TD_VALUE}">${jointLabel}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Total Rail A spindles</td><td style="${LP_TD_VALUE}">${totalA}</td></tr>
+      <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Total Rail B spindles</td><td style="padding:4px 8px;font-size:13px;color:#111;">${totalB}</td></tr>
+    </table>
+    ${lpSectionHeading('Spindle Positions')}
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><th style="${LP_TH}">Spindle</th><th style="${LP_TH}">Reference</th><th style="${LP_TH}">Distance</th></tr>
+      ${rowsHtml.join('')}
+    </table>
+  `;
+
+  layoutShowPrintOverlay(contentHtml, plainText);
+}
+$('spl-print-btn').addEventListener('click', splPrintLayout);
+
 SPL_LENGTH_FIELDS.forEach(id=>{ $(id).addEventListener('input', calcSpindleLayout); });
 $('spl-joint').addEventListener('change', calcSpindleLayout);
 splUpdateLabels();
@@ -9478,7 +10166,7 @@ document.querySelectorAll('#pk-subtabs button').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('#pk-subtabs button').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-    ['pk-rect','pk-sunburst','pk-diagonal'].forEach(id=>{
+    ['pk-rect','pk-sunburst'].forEach(id=>{
       $(id).classList.toggle('active', id===btn.dataset.sub);
     });
   });
@@ -9604,6 +10292,62 @@ function pkrShowPicketDetail(){
 
 $('pkr-picket-select').addEventListener('change', pkrShowPicketDetail);
 
+// Shared overlay used by every card's "Print / Save as PDF" feature. Pass
+// the print-ready content (title, input table, results table — all plain
+// black-on-white HTML) and a matching plain-text version for the Copy as
+// Text fallback (used when clipboard/print/download APIs aren't available
+// in the current viewing context, e.g. some embedded mobile app views).
+function layoutShowPrintOverlay(contentHtml, plainText){
+  const bodyHtml = `
+    <div class="no-print" style="text-align:right;margin-bottom:10px;">
+      <button type="button" id="layout-print-now-btn" style="font-family:Arial,sans-serif;padding:8px 16px;margin-right:8px;cursor:pointer;">Print / Save as PDF</button>
+      <button type="button" id="layout-print-copy-btn" style="font-family:Arial,sans-serif;padding:8px 16px;margin-right:8px;cursor:pointer;">Copy as Text</button>
+      <button type="button" id="layout-print-close-btn" style="font-family:Arial,sans-serif;padding:8px 16px;cursor:pointer;">Close</button>
+    </div>
+    <div class="no-print" id="layout-print-copy-status" style="text-align:right;font-size:12px;color:#555;margin-bottom:10px;"></div>
+    <div class="no-print" id="layout-print-copy-area" style="display:none;margin-bottom:16px;">
+      <textarea readonly rows="6" style="width:100%;font-family:monospace;font-size:12px;box-sizing:border-box;padding:8px;">${plainText}</textarea>
+    </div>
+    ${contentHtml}
+  `;
+
+  let overlay = document.getElementById('layout-print-overlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'layout-print-overlay';
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = bodyHtml;
+  overlay.classList.add('visible');
+  overlay.scrollTop = 0;
+  window.scrollTo(0,0);
+
+  document.getElementById('layout-print-now-btn').addEventListener('click', ()=>{ window.print(); });
+  document.getElementById('layout-print-close-btn').addEventListener('click', ()=>{ overlay.classList.remove('visible'); });
+  document.getElementById('layout-print-copy-btn').addEventListener('click', async ()=>{
+    const statusEl = document.getElementById('layout-print-copy-status');
+    const areaEl = document.getElementById('layout-print-copy-area');
+    try{
+      await navigator.clipboard.writeText(plainText);
+      statusEl.textContent = 'Copied to clipboard.';
+    }catch(e){
+      areaEl.style.display = '';
+      const ta = areaEl.querySelector('textarea');
+      ta.focus();
+      ta.select();
+      statusEl.textContent = 'Selected the text below — copy it manually (automatic copy was blocked here).';
+    }
+  });
+}
+
+// shared cell styles for the print tables, so every card's printout looks consistent
+const LP_TD_LABEL = 'padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#555;width:45%;';
+const LP_TD_VALUE = 'padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;';
+const LP_TH = 'text-align:left;font-size:12px;color:#555;border-bottom:2px solid #333;padding:6px 8px;';
+const LP_TD_ROW = 'padding:6px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;';
+function lpTitle(text){ return `<h1 style="font-size:20px;margin-bottom:2px;color:#111;font-family:Arial,Helvetica,sans-serif;font-weight:bold;text-transform:none;letter-spacing:normal;">${text}</h1><div style="color:#555;font-size:12px;margin-bottom:20px;">Generated by Shop Assistant — ${new Date().toLocaleString()}</div>`; }
+function lpSectionHeading(text){ return `<h2 style="font-size:14px;margin-top:24px;margin-bottom:8px;border-bottom:1px solid #999;padding-bottom:4px;color:#111;font-family:Arial,Helvetica,sans-serif;font-weight:bold;">${text}</h2>`; }
+
 function pkrPrintLayout(){
   if(!pkrLayoutData){
     alert('Enter opening width, picket width, and maximum spacing to compute a layout first.');
@@ -9617,7 +10361,7 @@ function pkrPrintLayout(){
   const rows = [];
   for(let i=0; i<N; i++){
     const leftEdge = positions[i] - W/2;
-    rows.push('<tr><td style="padding:6px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">Picket ' + (i+1) + '</td><td style="padding:6px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">Left Edge</td><td style="padding:6px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">' + toLabel(leftEdge, pkrUnit) + '</td></tr>');
+    rows.push('<tr><td style="' + LP_TD_ROW + '">Picket ' + (i+1) + '</td><td style="' + LP_TD_ROW + '">Left Edge</td><td style="' + LP_TD_ROW + '">' + toLabel(leftEdge, pkrUnit) + '</td></tr>');
   }
 
   const plainTextLines = [];
@@ -9639,65 +10383,96 @@ function pkrPrintLayout(){
   }
   const plainText = plainTextLines.join('\n');
 
-  const bodyHtml = `
-    <div class="no-print" style="text-align:right;margin-bottom:10px;">
-      <button type="button" id="pkr-print-now-btn" style="font-family:Arial,sans-serif;padding:8px 16px;margin-right:8px;cursor:pointer;">Print / Save as PDF</button>
-      <button type="button" id="pkr-print-copy-btn" style="font-family:Arial,sans-serif;padding:8px 16px;margin-right:8px;cursor:pointer;">Copy as Text</button>
-      <button type="button" id="pkr-print-close-btn" style="font-family:Arial,sans-serif;padding:8px 16px;cursor:pointer;">Close</button>
-    </div>
-    <div class="no-print" id="pkr-print-copy-status" style="text-align:right;font-size:12px;color:#555;margin-bottom:10px;"></div>
-    <div class="no-print" id="pkr-print-copy-area" style="display:none;margin-bottom:16px;">
-      <textarea readonly rows="6" style="width:100%;font-family:monospace;font-size:12px;box-sizing:border-box;padding:8px;">${plainText}</textarea>
-    </div>
-    <h1 style="font-size:20px;margin-bottom:2px;color:#111;font-family:Arial,Helvetica,sans-serif;font-weight:bold;text-transform:none;letter-spacing:normal;">Picket Layout — Rectangular</h1>
-    <div style="color:#555;font-size:12px;margin-bottom:20px;">Generated by Shop Assistant — ${new Date().toLocaleString()}</div>
-
-    <h2 style="font-size:14px;margin-top:24px;margin-bottom:8px;border-bottom:1px solid #999;padding-bottom:4px;color:#111;font-family:Arial,Helvetica,sans-serif;font-weight:bold;">Inputs</h2>
+  const contentHtml = `
+    ${lpTitle('Picket Layout — Rectangular')}
+    ${lpSectionHeading('Inputs')}
     <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
-      <tr><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#555;width:45%;">Opening width</td><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">${toLabel(parseLengthInput($('pkr-opening').value, pkrUnit), pkrUnit)}</td></tr>
-      <tr><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#555;">Picket width</td><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">${toLabel(W, pkrUnit)}</td></tr>
-      <tr><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#555;">Rail incline</td><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">${fmt(inclineDeg,2)}°</td></tr>
-      <tr><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#555;">Maximum spacing</td><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">${toLabel(parseLengthInput($('pkr-maxspace').value, pkrUnit), pkrUnit)}</td></tr>
-      <tr><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#555;">Layout type</td><td style="padding:4px 8px;font-size:13px;border-bottom:1px solid #eee;color:#111;">${typeLabel}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Opening width</td><td style="${LP_TD_VALUE}">${toLabel(parseLengthInput($('pkr-opening').value, pkrUnit), pkrUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Picket width</td><td style="${LP_TD_VALUE}">${toLabel(W, pkrUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Rail incline</td><td style="${LP_TD_VALUE}">${fmt(inclineDeg,2)}°</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Maximum spacing</td><td style="${LP_TD_VALUE}">${toLabel(parseLengthInput($('pkr-maxspace').value, pkrUnit), pkrUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Layout type</td><td style="${LP_TD_VALUE}">${typeLabel}</td></tr>
       <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Number of pickets</td><td style="padding:4px 8px;font-size:13px;color:#111;">${N}</td></tr>
     </table>
-
-    <h2 style="font-size:14px;margin-top:24px;margin-bottom:8px;border-bottom:1px solid #999;padding-bottom:4px;color:#111;font-family:Arial,Helvetica,sans-serif;font-weight:bold;">Picket Positions</h2>
+    ${lpSectionHeading('Picket Positions')}
     <table style="border-collapse:collapse;width:100%;">
-      <tr><th style="text-align:left;font-size:12px;color:#555;border-bottom:2px solid #333;padding:6px 8px;">Picket</th><th style="text-align:left;font-size:12px;color:#555;border-bottom:2px solid #333;padding:6px 8px;">Reference</th><th style="text-align:left;font-size:12px;color:#555;border-bottom:2px solid #333;padding:6px 8px;">Distance</th></tr>
+      <tr><th style="${LP_TH}">Picket</th><th style="${LP_TH}">Reference</th><th style="${LP_TH}">Distance</th></tr>
       ${rows.join('')}
     </table>
   `;
 
-  let overlay = document.getElementById('pkr-print-overlay');
-  if(!overlay){
-    overlay = document.createElement('div');
-    overlay.id = 'pkr-print-overlay';
-    document.body.appendChild(overlay);
-  }
-  overlay.innerHTML = bodyHtml;
-  overlay.classList.add('visible');
-  overlay.scrollTop = 0;
-  window.scrollTo(0,0);
-
-  document.getElementById('pkr-print-now-btn').addEventListener('click', ()=>{ window.print(); });
-  document.getElementById('pkr-print-close-btn').addEventListener('click', ()=>{ overlay.classList.remove('visible'); });
-  document.getElementById('pkr-print-copy-btn').addEventListener('click', async ()=>{
-    const statusEl = document.getElementById('pkr-print-copy-status');
-    const areaEl = document.getElementById('pkr-print-copy-area');
-    try{
-      await navigator.clipboard.writeText(plainText);
-      statusEl.textContent = 'Copied to clipboard.';
-    }catch(e){
-      areaEl.style.display = '';
-      const ta = areaEl.querySelector('textarea');
-      ta.focus();
-      ta.select();
-      statusEl.textContent = 'Selected the text below — copy it manually (automatic copy was blocked here).';
-    }
-  });
+  layoutShowPrintOverlay(contentHtml, plainText);
 }
 $('pkr-print-btn').addEventListener('click', pkrPrintLayout);
+
+function pksPrintLayout(){
+  if(!pksRows.length){
+    alert('Enter length, height, picket width, and maximum spacing to compute a layout first.');
+    return;
+  }
+  const L = parseLengthInput($('pks-length').value, pksUnit);
+  const H = parseLengthInput($('pks-height').value, pksUnit);
+  const W = parseLengthInput($('pks-picketwidth').value, pksUnit);
+  const Smax = parseLengthInput($('pks-maxspace').value, pksUnit);
+
+  function pksDetailText(r){
+    let parts = ['Type: ' + r.type, 'Bottom Miter: ' + fmt(r.bottomMiterDeg,2) + '°', 'Blank Length: ' + toLabel(r.blankLength, pksUnit)];
+    if(r.type === 'Corner'){
+      parts.push('Top Miter (H): ' + fmt(r.topMiterHorizontal,2) + '°');
+      parts.push('Top Miter (V): ' + fmt(r.topMiterVertical,2) + '°');
+      parts.push('Dist to H Miter: ' + toLabel(r.distToHorizontalMiter, pksUnit));
+      parts.push('Dist to Corner: ' + toLabel(r.distToCornerPoint, pksUnit));
+      parts.push('Dist to V Miter: ' + toLabel(r.distToVerticalMiter, pksUnit));
+    } else {
+      const label = r.type==='Top' ? 'Top Miter' : r.type==='Side' ? 'Side Miter' : 'Top/Bottom Miter';
+      parts.push(label + ': ' + fmt(r.topOrSideMiterDeg,2) + '°');
+    }
+    return parts;
+  }
+
+  const rowsHtml = pksRows.map(r=>{
+    const detail = pksDetailText(r).slice(1).join(' | '); // skip "Type: X", shown in its own column
+    return '<tr><td style="' + LP_TD_ROW + '">' + r.label + (r.type!=='Center' ? ' (' + fmt(r.angleDeg,1) + '°)' : '') + '</td><td style="' + LP_TD_ROW + '">' + r.type + '</td><td style="' + LP_TD_ROW + '">' + detail + '</td></tr>';
+  }).join('');
+
+  const plainTextLines = [];
+  plainTextLines.push('PICKET LAYOUT — SUNBURST');
+  plainTextLines.push('Generated by Shop Assistant — ' + new Date().toLocaleString());
+  plainTextLines.push('');
+  plainTextLines.push('INPUTS');
+  plainTextLines.push('Length: ' + toLabel(L, pksUnit));
+  plainTextLines.push('Height: ' + toLabel(H, pksUnit));
+  plainTextLines.push('Picket width: ' + toLabel(W, pksUnit));
+  plainTextLines.push('Maximum spacing: ' + toLabel(Smax, pksUnit));
+  plainTextLines.push('Number of pickets: ' + pksRows.length);
+  plainTextLines.push('');
+  plainTextLines.push('PICKET DETAIL');
+  pksRows.forEach(r=>{
+    const label = r.label + (r.type!=='Center' ? ' (' + fmt(r.angleDeg,1) + '°)' : '');
+    plainTextLines.push(label + ' - ' + pksDetailText(r).join(' - '));
+  });
+  const plainText = plainTextLines.join('\n');
+
+  const contentHtml = `
+    ${lpTitle('Picket Layout — Sunburst')}
+    ${lpSectionHeading('Inputs')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      <tr><td style="${LP_TD_LABEL}">Length</td><td style="${LP_TD_VALUE}">${toLabel(L, pksUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Height</td><td style="${LP_TD_VALUE}">${toLabel(H, pksUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Picket width</td><td style="${LP_TD_VALUE}">${toLabel(W, pksUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Maximum spacing</td><td style="${LP_TD_VALUE}">${toLabel(Smax, pksUnit)}</td></tr>
+      <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Number of pickets</td><td style="padding:4px 8px;font-size:13px;color:#111;">${pksRows.length}</td></tr>
+    </table>
+    ${lpSectionHeading('Picket Detail')}
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><th style="${LP_TH}">Picket</th><th style="${LP_TH}">Type</th><th style="${LP_TH}">Detail</th></tr>
+      ${rowsHtml}
+    </table>
+  `;
+
+  layoutShowPrintOverlay(contentHtml, plainText);
+}
+$('pks-print-btn').addEventListener('click', pksPrintLayout);
 
 function calcPicketRect(){
   const Lraw = parseLengthInput($('pkr-opening').value, pkrUnit), Wraw = parseLengthInput($('pkr-picketwidth').value, pkrUnit);
@@ -10346,6 +11121,66 @@ $('swf-stud-select').addEventListener('change', swfShowStudDetail);
 swfUpdateLabels();
 calcStudWalls();
 
+function swfPrintLayout(){
+  if(!swfStuds.length){
+    alert('Enter foundation length and other dimensions to compute a layout first.');
+    return;
+  }
+  const studSelect = $('swf-studsize');
+  const studLabel = studSelect.options[studSelect.selectedIndex].text;
+  const ocVal = $('swf-oc').value;
+  const sheathingSelect = $('swf-sheathing');
+  const sheathingLabel = sheathingSelect.options[sheathingSelect.selectedIndex].text;
+  const cornerSelect = $('swf-corner');
+  const cornerLabel = cornerSelect.options[cornerSelect.selectedIndex].text;
+  const cornerOnPlate = cornerSelect.value === 'onplate';
+  const cornerExtra = cornerOnPlate ? 8 : 0;
+  const totalStuds = swfStuds.length + cornerExtra;
+
+  const rowsHtml = swfStuds.map((leftEdge,i)=>
+    '<tr><td style="' + LP_TD_ROW + '">Stud ' + (i+1) + '</td><td style="' + LP_TD_ROW + '">Dist. from left side of foundation</td><td style="' + LP_TD_ROW + '">' + toLabel(leftEdge, swfUnit) + '</td></tr>'
+  ).join('');
+
+  const plainTextLines = [];
+  plainTextLines.push('WALL FRAMING — STUD WALLS');
+  plainTextLines.push('Generated by Shop Assistant — ' + new Date().toLocaleString());
+  plainTextLines.push('');
+  plainTextLines.push('INPUTS');
+  plainTextLines.push('Foundation length: ' + toLabel(parseLengthInput($('swf-foundation').value, swfUnit), swfUnit));
+  plainTextLines.push('Stud size: ' + studLabel);
+  plainTextLines.push('On-center: ' + ocVal + '"');
+  plainTextLines.push('Sheathing: ' + sheathingLabel);
+  plainTextLines.push('Corner treatment: ' + cornerLabel);
+  plainTextLines.push('Total studs: ' + totalStuds);
+  plainTextLines.push('');
+  plainTextLines.push('STUD POSITIONS');
+  swfStuds.forEach((leftEdge,i)=>{
+    plainTextLines.push('Stud ' + (i+1) + ' - Dist. from left side of foundation - ' + toLabel(leftEdge, swfUnit));
+  });
+  const plainText = plainTextLines.join('\n');
+
+  const contentHtml = `
+    ${lpTitle('Wall Framing — Stud Walls')}
+    ${lpSectionHeading('Inputs')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      <tr><td style="${LP_TD_LABEL}">Foundation length</td><td style="${LP_TD_VALUE}">${toLabel(parseLengthInput($('swf-foundation').value, swfUnit), swfUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Stud size</td><td style="${LP_TD_VALUE}">${studLabel}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">On-center</td><td style="${LP_TD_VALUE}">${ocVal}"</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Sheathing</td><td style="${LP_TD_VALUE}">${sheathingLabel}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Corner treatment</td><td style="${LP_TD_VALUE}">${cornerLabel}</td></tr>
+      <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Total studs</td><td style="padding:4px 8px;font-size:13px;color:#111;">${totalStuds}</td></tr>
+    </table>
+    ${lpSectionHeading('Stud Positions')}
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><th style="${LP_TH}">Stud</th><th style="${LP_TH}">Reference</th><th style="${LP_TH}">Distance</th></tr>
+      ${rowsHtml}
+    </table>
+  `;
+
+  layoutShowPrintOverlay(contentHtml, plainText);
+}
+$('swf-print-btn').addEventListener('click', swfPrintLayout);
+
 // ---- Stud Walls: saved files ----
 const SWF_SAVE_KEY = 'stud-walls-saves';
 let swfSavedFiles = [];
@@ -10634,6 +11469,82 @@ $('rkw-stud-select').addEventListener('change', rkwShowStudDetail);
 });
 rkwUpdateLabels();
 calcRakeWalls();
+
+function rkwPrintLayout(){
+  if(!rkwStuds.length){
+    alert('Enter foundation length and other dimensions to compute a layout first.');
+    return;
+  }
+  const studSelect = $('rkw-studsize');
+  const studLabel = studSelect.options[studSelect.selectedIndex].text;
+  const ocVal = $('rkw-oc').value;
+  const sheathingSelect = $('rkw-sheathing');
+  const sheathingLabel = sheathingSelect.options[sheathingSelect.selectedIndex].text;
+  const cornerSelect = $('rkw-corner');
+  const cornerLabel = cornerSelect.options[cornerSelect.selectedIndex].text;
+  const cornerOnPlate = cornerSelect.value === 'onplate';
+  const cornerExtra = cornerOnPlate ? 8 : 0;
+  const totalStuds = rkwStuds.length + cornerExtra;
+
+  const foundationRaw = parseLengthInput($('rkw-foundation').value, rkwUnit);
+  const leftHRaw = parseLengthInput($('rkw-leftheight').value, rkwUnit);
+  const rightHRaw = parseLengthInput($('rkw-rightheight').value, rkwUnit);
+  const levelSeatRaw = parseLengthInput($('rkw-levelseat').value, rkwUnit);
+  const rise = rightHRaw - leftHRaw;
+  const run = foundationRaw - levelSeatRaw*2;
+  const angleDeg = deg(Math.atan(rise/run));
+
+  const rowsHtml = rkwStuds.map((s,i)=>
+    '<tr><td style="' + LP_TD_ROW + '">Stud ' + (i+1) + '</td><td style="' + LP_TD_ROW + '">' + toLabel(s.x, rkwUnit) + '</td><td style="' + LP_TD_ROW + '">' + toLabel(s.height, rkwUnit) + '</td></tr>'
+  ).join('');
+
+  const plainTextLines = [];
+  plainTextLines.push('WALL FRAMING — RAKE WALLS');
+  plainTextLines.push('Generated by Shop Assistant — ' + new Date().toLocaleString());
+  plainTextLines.push('');
+  plainTextLines.push('INPUTS');
+  plainTextLines.push('Foundation length: ' + toLabel(foundationRaw, rkwUnit));
+  plainTextLines.push('Stud size: ' + studLabel);
+  plainTextLines.push('On-center: ' + ocVal + '"');
+  plainTextLines.push('Sheathing: ' + sheathingLabel);
+  plainTextLines.push('Left height: ' + toLabel(leftHRaw, rkwUnit));
+  plainTextLines.push('Right height: ' + toLabel(rightHRaw, rkwUnit));
+  plainTextLines.push('Corner treatment: ' + cornerLabel);
+  plainTextLines.push('Level seat: ' + toLabel(levelSeatRaw, rkwUnit));
+  plainTextLines.push('Top incline angle: ' + fmt(angleDeg,3) + '°');
+  plainTextLines.push('Total studs: ' + totalStuds);
+  plainTextLines.push('');
+  plainTextLines.push('STUD POSITIONS');
+  rkwStuds.forEach((s,i)=>{
+    plainTextLines.push('Stud ' + (i+1) + ' - Dist. from left: ' + toLabel(s.x, rkwUnit) + ' - Height: ' + toLabel(s.height, rkwUnit));
+  });
+  const plainText = plainTextLines.join('\n');
+
+  const contentHtml = `
+    ${lpTitle('Wall Framing — Rake Walls')}
+    ${lpSectionHeading('Inputs')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      <tr><td style="${LP_TD_LABEL}">Foundation length</td><td style="${LP_TD_VALUE}">${toLabel(foundationRaw, rkwUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Stud size</td><td style="${LP_TD_VALUE}">${studLabel}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">On-center</td><td style="${LP_TD_VALUE}">${ocVal}"</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Sheathing</td><td style="${LP_TD_VALUE}">${sheathingLabel}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Left height</td><td style="${LP_TD_VALUE}">${toLabel(leftHRaw, rkwUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Right height</td><td style="${LP_TD_VALUE}">${toLabel(rightHRaw, rkwUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Corner treatment</td><td style="${LP_TD_VALUE}">${cornerLabel}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Level seat</td><td style="${LP_TD_VALUE}">${toLabel(levelSeatRaw, rkwUnit)}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Top incline angle</td><td style="${LP_TD_VALUE}">${fmt(angleDeg,3)}°</td></tr>
+      <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Total studs</td><td style="padding:4px 8px;font-size:13px;color:#111;">${totalStuds}</td></tr>
+    </table>
+    ${lpSectionHeading('Stud Positions')}
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><th style="${LP_TH}">Stud</th><th style="${LP_TH}">Dist. from Left</th><th style="${LP_TH}">Height</th></tr>
+      ${rowsHtml}
+    </table>
+  `;
+
+  layoutShowPrintOverlay(contentHtml, plainText);
+}
+$('rkw-print-btn').addEventListener('click', rkwPrintLayout);
 
 // ---- Rake Walls: saved files ----
 const RKW_SAVE_KEY = 'rake-walls-saves';
@@ -12761,6 +13672,170 @@ $('chm-add-btn').addEventListener('click', ()=>{
 
 chmLoad();
 
+// ---- Paint & Chemical Mixes: Color Mixing ----
+// Suggests up to 3 of a fixed 5-color palette (Red/Yellow/Blue/White/Black)
+// and mixing percentages that approximate a target hex color. Uses linear
+// RGB blending as the mixing model (simple and predictable, and correct
+// for the most common real cases -- tinting with white, shading with
+// black, blending adjacent hues) and CIE76 LAB-space distance to judge
+// which candidate combination is perceptually closest to the target. This
+// is a simplified approximation, not a true pigment/reflectance
+// simulation, and won't correctly predict some pigment-specific results
+// (e.g. blue+yellow paint making green rather than gray).
+const CMX_BASE_COLORS = [
+  { name: 'Red', hex: '#FF0000' },
+  { name: 'Orange', hex: '#FF8000' },
+  { name: 'Yellow', hex: '#FFFF00' },
+  { name: 'Green', hex: '#008000' },
+  { name: 'Blue', hex: '#0000FF' },
+  { name: 'Indigo', hex: '#4B0082' },
+  { name: 'Violet', hex: '#8F00FF' },
+  { name: 'Purple', hex: '#800080' },
+  { name: 'White', hex: '#FFFFFF' },
+  { name: 'Black', hex: '#000000' },
+];
+
+function cmxHexToRgb(hex){
+  let h = hex.trim().replace(/^#/, '');
+  if(h.length === 3) h = h.split('').map(c=>c+c).join('');
+  if(!/^[0-9a-fA-F]{6}$/.test(h)) return null;
+  return {
+    r: parseInt(h.slice(0,2),16),
+    g: parseInt(h.slice(2,4),16),
+    b: parseInt(h.slice(4,6),16)
+  };
+}
+function cmxRgbToHex(r,g,b){
+  const c = v => Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0');
+  return '#' + c(r) + c(g) + c(b);
+}
+CMX_BASE_COLORS.forEach(c=>{ c.rgb = cmxHexToRgb(c.hex); });
+
+function cmxSrgbToLinear(c){
+  c = c/255;
+  return c<=0.04045 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4);
+}
+function cmxRgbToLab(r,g,b){
+  const rl=cmxSrgbToLinear(r), gl=cmxSrgbToLinear(g), bl=cmxSrgbToLinear(b);
+  const x = rl*0.4124564 + gl*0.3575761 + bl*0.1804375;
+  const y = rl*0.2126729 + gl*0.7151522 + bl*0.0721750;
+  const z = rl*0.0193339 + gl*0.1191920 + bl*0.9503041;
+  const xn=0.95047, yn=1.0, zn=1.08883;
+  const f = t => t>0.008856 ? Math.cbrt(t) : (7.787*t + 16/116);
+  const fx=f(x/xn), fy=f(y/yn), fz=f(z/zn);
+  return { L: 116*fy-16, a: 500*(fx-fy), b: 200*(fy-fz) };
+}
+function cmxLabDistance(l1, l2){
+  return Math.sqrt((l1.L-l2.L)**2 + (l1.a-l2.a)**2 + (l1.b-l2.b)**2);
+}
+function cmxMatchQuality(deltaE){
+  if(deltaE < 1) return 'excellent match';
+  if(deltaE < 2) return 'very close match';
+  if(deltaE < 10) return 'noticeable but similar';
+  return 'significantly different';
+}
+
+// all combinations of 1, 2, or 3 indices out of the 5-color palette
+function cmxCombinations(){
+  const n = CMX_BASE_COLORS.length;
+  const combos = [];
+  for(let i=0;i<n;i++) combos.push([i]);
+  for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) combos.push([i,j]);
+  for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) for(let k=j+1;k<n;k++) combos.push([i,j,k]);
+  return combos;
+}
+const CMX_COMBOS = cmxCombinations();
+
+function cmxFindBestMix(targetHex){
+  const targetRgb = cmxHexToRgb(targetHex);
+  if(!targetRgb) return null;
+  const targetLab = cmxRgbToLab(targetRgb.r, targetRgb.g, targetRgb.b);
+
+  let best = null;
+  const STEP = 1; // percent
+
+  for(const combo of CMX_COMBOS){
+    const cols = combo.map(i=>CMX_BASE_COLORS[i]);
+
+    if(cols.length === 1){
+      const c = cols[0];
+      const lab = cmxRgbToLab(c.rgb.r, c.rgb.g, c.rgb.b);
+      const d = cmxLabDistance(lab, targetLab);
+      if(!best || d < best.deltaE) best = { colors: [{ name: c.name, pct: 100 }], mixRgb: c.rgb, deltaE: d };
+      continue;
+    }
+
+    if(cols.length === 2){
+      for(let w1=0; w1<=100; w1+=STEP){
+        const w2 = 100-w1;
+        const r = (cols[0].rgb.r*w1 + cols[1].rgb.r*w2)/100;
+        const g = (cols[0].rgb.g*w1 + cols[1].rgb.g*w2)/100;
+        const b = (cols[0].rgb.b*w1 + cols[1].rgb.b*w2)/100;
+        const d = cmxLabDistance(cmxRgbToLab(r,g,b), targetLab);
+        if(!best || d < best.deltaE){
+          best = { colors: [{name:cols[0].name,pct:w1},{name:cols[1].name,pct:w2}].filter(x=>x.pct>0), mixRgb:{r,g,b}, deltaE: d };
+        }
+      }
+      continue;
+    }
+
+    // 3 colors
+    for(let w1=0; w1<=100; w1+=STEP){
+      for(let w2=0; w2<=100-w1; w2+=STEP){
+        const w3 = 100-w1-w2;
+        const r = (cols[0].rgb.r*w1 + cols[1].rgb.r*w2 + cols[2].rgb.r*w3)/100;
+        const g = (cols[0].rgb.g*w1 + cols[1].rgb.g*w2 + cols[2].rgb.g*w3)/100;
+        const b = (cols[0].rgb.b*w1 + cols[1].rgb.b*w2 + cols[2].rgb.b*w3)/100;
+        const d = cmxLabDistance(cmxRgbToLab(r,g,b), targetLab);
+        if(!best || d < best.deltaE){
+          best = { colors: [{name:cols[0].name,pct:w1},{name:cols[1].name,pct:w2},{name:cols[2].name,pct:w3}].filter(x=>x.pct>0), mixRgb:{r,g,b}, deltaE: d };
+        }
+      }
+    }
+  }
+  return best;
+}
+
+function cmxUpdate(){
+  const hexInput = $('cmx-target-hex').value;
+  const rgb = cmxHexToRgb(hexInput);
+  const resultsBox = $('cmx-results');
+  if(!rgb){
+    $('cmx-target-swatch').style.background = 'transparent';
+    $('cmx-mix-swatch').style.background = 'transparent';
+    resultsBox.innerHTML = '<p class="desc">Enter a valid hex color (e.g. #7A9B5C).</p>';
+    return;
+  }
+  const normalizedHex = cmxRgbToHex(rgb.r, rgb.g, rgb.b);
+  $('cmx-target-swatch').style.background = normalizedHex;
+  $('cmx-target-picker').value = normalizedHex;
+
+  const best = cmxFindBestMix(normalizedHex);
+  if(!best){ resultsBox.innerHTML = ''; return; }
+
+  $('cmx-mix-swatch').style.background = cmxRgbToHex(best.mixRgb.r, best.mixRgb.g, best.mixRgb.b);
+
+  const rows = best.colors.map(c=>
+    `<div class="line"><span>${c.name}</span><b class="hi">${c.pct.toFixed(0)}%</b></div>`
+  ).join('');
+  resultsBox.innerHTML = `
+    <div class="section-divider">Suggested Mix</div>
+    <div class="result" style="margin-top:0;padding-top:0;border-top:none;">${rows}</div>
+    <p class="desc" style="margin-top:8px;">Match quality: ${cmxMatchQuality(best.deltaE)} (ΔE ${best.deltaE.toFixed(2)})</p>
+  `;
+}
+
+let cmxDebounceTimer = null;
+$('cmx-target-hex').addEventListener('input', ()=>{
+  clearTimeout(cmxDebounceTimer);
+  cmxDebounceTimer = setTimeout(cmxUpdate, 200);
+});
+$('cmx-target-picker').addEventListener('input', ()=>{
+  $('cmx-target-hex').value = $('cmx-target-picker').value.toUpperCase();
+  cmxUpdate();
+});
+cmxUpdate();
+
 // ---- Paint & Chemical Mixes: Wood Stains ----
 const WST_SAVE_KEY = 'wood-stains-db';
 let wstData = { brands: [], stainNames: [], entries: [] };
@@ -13255,6 +14330,79 @@ function ucUpdateFrom(sourceId, unit){
 $('uc-decimal').addEventListener('input', ()=>ucUpdateFrom('uc-decimal','decimal'));
 $('uc-fraction').addEventListener('input', ()=>ucUpdateFrom('uc-fraction','fraction'));
 $('uc-mm').addEventListener('input', ()=>ucUpdateFrom('uc-mm','mm'));
+
+// second group: Decimal (ft) / Feet-Inch / Centimeters, canonically feet.
+// Reuses Square-Up's feet-inch parser/formatter and the shared meters
+// conversion constant (divided by 100 for centimeters) rather than
+// duplicating that logic.
+const UC_FT_PER_CM = SHAPE_UNIT_TO_FEET.m/100;
+function ucFtUpdateFrom(sourceId, unit){
+  let feetVal;
+  if(unit==='decimalft') feetVal = parseFloat($(sourceId).value);
+  else if(unit==='ftin') feetVal = sq345ParseInput($(sourceId).value);
+  else feetVal = parseFloat($(sourceId).value) * UC_FT_PER_CM; // cm
+
+  if(!isFinite(feetVal)) return; // leave the other fields showing their last valid value
+  if(sourceId !== 'uc-decimalft') $('uc-decimalft').value = (Math.round(feetVal*10000)/10000).toString();
+  if(sourceId !== 'uc-ftin') $('uc-ftin').value = sq345FeetToFtIn(feetVal);
+  if(sourceId !== 'uc-cm') $('uc-cm').value = (Math.round((feetVal/UC_FT_PER_CM)*100)/100).toString();
+}
+$('uc-decimalft').addEventListener('input', ()=>ucFtUpdateFrom('uc-decimalft','decimalft'));
+$('uc-ftin').addEventListener('input', ()=>ucFtUpdateFrom('uc-ftin','ftin'));
+$('uc-cm').addEventListener('input', ()=>ucFtUpdateFrom('uc-cm','cm'));
+
+// group: Meter / Centimeter / Millimeter, canonically meters
+function ucMetricUpdateFrom(sourceId, unit){
+  let mVal;
+  if(unit==='m') mVal = parseFloat($(sourceId).value);
+  else if(unit==='cm') mVal = parseFloat($(sourceId).value) / 100;
+  else mVal = parseFloat($(sourceId).value) / 1000; // mm
+
+  if(!isFinite(mVal)) return; // leave the other fields showing their last valid value
+  if(sourceId !== 'uc-m') $('uc-m').value = (Math.round(mVal*10000)/10000).toString();
+  if(sourceId !== 'uc-cm2') $('uc-cm2').value = (Math.round(mVal*100*10000)/10000).toString();
+  if(sourceId !== 'uc-mm2') $('uc-mm2').value = (Math.round(mVal*1000*100)/100).toString();
+}
+$('uc-m').addEventListener('input', ()=>ucMetricUpdateFrom('uc-m','m'));
+$('uc-cm2').addEventListener('input', ()=>ucMetricUpdateFrom('uc-cm2','cm'));
+$('uc-mm2').addEventListener('input', ()=>ucMetricUpdateFrom('uc-mm2','mm'));
+
+// third group: Gallons / Quarts / Pints, canonically gallons
+// (1 gal = 4 qt = 8 pt)
+function ucVolUpdateFrom(sourceId, unit){
+  let galVal;
+  if(unit==='gal') galVal = parseFloat($(sourceId).value);
+  else if(unit==='qt') galVal = parseFloat($(sourceId).value) / 4;
+  else galVal = parseFloat($(sourceId).value) / 8; // pt
+
+  if(!isFinite(galVal)) return; // leave the other fields showing their last valid value
+  if(sourceId !== 'uc-gal') $('uc-gal').value = (Math.round(galVal*10000)/10000).toString();
+  if(sourceId !== 'uc-qt') $('uc-qt').value = (Math.round(galVal*4*10000)/10000).toString();
+  if(sourceId !== 'uc-pt') $('uc-pt').value = (Math.round(galVal*8*10000)/10000).toString();
+}
+$('uc-gal').addEventListener('input', ()=>ucVolUpdateFrom('uc-gal','gal'));
+$('uc-qt').addEventListener('input', ()=>ucVolUpdateFrom('uc-qt','qt'));
+$('uc-pt').addEventListener('input', ()=>ucVolUpdateFrom('uc-pt','pt'));
+
+// fourth group: Pints / Ounces / Drops, canonically ounces.
+// 1 pint = 16 fl oz. "Drop" isn't a strictly standardized physical unit
+// (it varies by dropper/fluid) -- using a round 600 drops per fl oz as a
+// simple approximation.
+const UC_DROPS_PER_OZ = 600;
+function ucDropsUpdateFrom(sourceId, unit){
+  let ozVal;
+  if(unit==='oz') ozVal = parseFloat($(sourceId).value);
+  else if(unit==='pt') ozVal = parseFloat($(sourceId).value) * 16;
+  else ozVal = parseFloat($(sourceId).value) / UC_DROPS_PER_OZ; // drops
+
+  if(!isFinite(ozVal)) return; // leave the other fields showing their last valid value
+  if(sourceId !== 'uc-pt2') $('uc-pt2').value = (Math.round((ozVal/16)*10000)/10000).toString();
+  if(sourceId !== 'uc-oz') $('uc-oz').value = (Math.round(ozVal*10000)/10000).toString();
+  if(sourceId !== 'uc-drops') $('uc-drops').value = (Math.round(ozVal*UC_DROPS_PER_OZ*100)/100).toString();
+}
+$('uc-pt2').addEventListener('input', ()=>ucDropsUpdateFrom('uc-pt2','pt'));
+$('uc-oz').addEventListener('input', ()=>ucDropsUpdateFrom('uc-oz','oz'));
+$('uc-drops').addEventListener('input', ()=>ucDropsUpdateFrom('uc-drops','drops'));
 
 function calcObjectClearance(){
   const spaceW = parseFloat($('ocl-spacew').value);
