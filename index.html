@@ -993,7 +993,7 @@
     <button data-tab="misc"><span class="num">06</span>Calculators</button>
     <button data-tab="data"><span class="num">07</span>Data &amp; Information</button>
     <button data-tab="paint"><span class="num">08</span>Paint &amp; Chemical Mixes</button>
-    <button data-tab="colors"><span class="num">09</span>Colors</button>
+    <button data-tab="colors"><span class="num">09</span>Settings &amp; Help</button>
   </nav>
 
   <!-- SAW CUTS -->
@@ -1004,7 +1004,7 @@
       <button data-sub="dubby">Dubby Sled Offcut</button>
       <button data-sub="dado">Dado Cut</button>
       <button data-sub="unequal-miter">Unequal Board Miter</button>
-      <button data-sub="crown">Crown Moulding</button>
+      <button data-sub="crown">Crown Molding</button>
       <button data-sub="polygon">Polygon Cuts</button>
       <button data-sub="diagonal">Diagonal Slats</button>
     </div>
@@ -1024,7 +1024,7 @@
 
         <div class="row">
           <div><label id="bsp-width-label">Board width (in)</label><input type="text" id="bsp-width" value="11.25" inputmode="decimal"></div>
-          <div><label>Number of strips</label><input type="number" id="bsp-count" value="3" step="1" min="1"></div>
+          <div><label>Number of offcuts</label><input type="number" id="bsp-count" value="3" step="1" min="1"></div>
         </div>
         <label>Blade</label>
         <select id="bsp-blade"><option>Loading blades…</option></select>
@@ -1044,7 +1044,7 @@
         </div>
 
         <div class="result">
-          <div class="line"><span>Strip width</span><b class="hi" id="bsp-strip">–</b></div>
+          <div class="line"><span>Offcut width</span><b class="hi" id="bsp-strip">–</b></div>
           <div class="line"><span>Kerf cuts required</span><b id="bsp-cuts">–</b></div>
           <div class="line"><span>Total material lost to kerf</span><b id="bsp-lost">–</b></div>
         </div>
@@ -1154,7 +1154,7 @@
       </div>
 
       <div class="subpanel card" id="crown">
-        <h3>Crown Moulding</h3>
+        <h3>Crown Molding</h3>
         <p class="desc">Compound miter and bevel for crown cut flat on the table, upside-down against the fence.</p>
 
         <label>Units (for distance fields below)</label>
@@ -1176,7 +1176,7 @@
         </div>
 
         <div class="section-divider">Don't know your spring angle?</div>
-        <p class="desc">Set the moulding in the corner, measure how far its back touches the wall and the ceiling, and this backs out the spring angle.</p>
+        <p class="desc">Set the molding in the corner, measure how far its back touches the wall and the ceiling, and this backs out the spring angle.</p>
         <div class="row">
           <div><label id="cr-wall-label">Wall distance (in)</label><input type="text" id="cr-wall-dist" inputmode="decimal" placeholder="e.g. 2.5"></div>
           <div><label id="cr-ceil-label">Ceiling distance (in)</label><input type="text" id="cr-ceil-dist" inputmode="decimal" placeholder="e.g. 2.0"></div>
@@ -4149,6 +4149,10 @@
             <div id="cmx-mix-swatch" style="width:64px;height:64px;border-radius:4px;border:1px solid var(--line);"></div>
             <div class="desc" style="margin-top:4px;font-size:11px;">Closest mix</div>
           </div>
+          <div>
+            <label for="cmx-desired-oz">Desired Ounces</label>
+            <input type="text" id="cmx-desired-oz" inputmode="decimal" placeholder="e.g. 8" value="8" style="width:90px;">
+          </div>
         </div>
         <div id="cmx-results"></div>
       </div>
@@ -4158,9 +4162,15 @@
 
   <!-- COLORS -->
   <section class="panel" id="colors">
-    <div class="grid">
 
-      <div class="card" style="grid-column:1/-1;">
+    <div class="subtabs">
+      <button class="active" data-sub="settings-colors">Colors</button>
+      <button data-sub="settings-help">Help</button>
+    </div>
+
+    <div class="subpanel-wrap">
+
+      <div class="subpanel active card" id="settings-colors">
         <h3>Colors</h3>
         <p class="desc">Change the app's color scheme. Your choice is saved automatically and applies everywhere — cards, buttons, diagrams, everything.</p>
 
@@ -4171,6 +4181,14 @@
         <div id="color-pickers"></div>
 
         <button type="button" id="color-reset-btn" class="link-btn" style="margin-top:14px;">Reset to Default</button>
+      </div>
+
+      <div class="subpanel card" id="settings-help">
+        <h3>Help</h3>
+        <p class="desc">Shop Assistant is a field-reference tool for woodshop and construction calculations and layouts. The full help guide below covers every tab and calculator in the app.</p>
+        <p class="desc" style="margin-top:8px;">If the PDF doesn't display below (some mobile browsers don't support inline PDF viewing), use the link to open it directly.</p>
+        <p style="margin-top:10px;"><a href="help.pdf" target="_blank" class="link-btn">Open Help PDF in New Tab ↗</a></p>
+        <iframe src="help.pdf" title="Shop Assistant Help" style="width:100%;height:600px;border:1px solid var(--line);border-radius:2px;margin-top:14px;background:#fff;"></iframe>
       </div>
 
     </div>
@@ -5302,7 +5320,7 @@ document.querySelectorAll('#um-unit-toggle button').forEach(btn=>{
 
 calcUm();
 
-// ---- Crown Moulding ----
+// ---- Crown Molding ----
 let crCornerType = 'outside';
 let crUnit = 'decimal';
 let crWallInches = NaN, crCeilInches = NaN;
@@ -5351,7 +5369,7 @@ function renderCrownDiagram(miterDeg, bevelDeg, cornerType){
   const miterDir = { x:Math.sin(mRad)*mirror, y:Math.cos(mRad) };
   const miterEnd = { x:center.x+miterDir.x*refLen, y:center.y+miterDir.y*refLen };
 
-  // moulding board as a thin rectangle laid along the miter line
+  // molding board as a thin rectangle laid along the miter line
   const boardHalfW = 13;
   const perp = { x:-miterDir.y, y:miterDir.x };
   const b1 = { x:center.x+perp.x*boardHalfW, y:center.y+perp.y*boardHalfW };
@@ -5437,7 +5455,7 @@ document.querySelectorAll('#cr-corner-toggle button').forEach(btn=>{
     btn.classList.add('active');
     crCornerType = btn.dataset.type;
     $('cr-note').textContent = crCornerType==='inside'
-      ? 'Inside corner: same miter and bevel magnitudes as an outside corner, but the moulding is mirrored — the cut runs the opposite way across the piece. Dry-fit both pieces before cutting for real.'
+      ? 'Inside corner: same miter and bevel magnitudes as an outside corner, but the molding is mirrored — the cut runs the opposite way across the piece. Dry-fit both pieces before cutting for real.'
       : 'Common spring angles: 38° (38/52 profile) or 45° (45/45 profile). Adjust corner angle for out-of-square walls.';
     calcCrown();
   });
@@ -6240,6 +6258,7 @@ function dsPrintLayout(){
       <tr><td style="${LP_TD_LABEL}">Longest blank length</td><td style="${LP_TD_VALUE}">${toLabel(longest, dsUnit)}</td></tr>
       <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Total length of slats</td><td style="padding:4px 8px;font-size:13px;color:#111;">${toLabel(totalLength, dsUnit)}</td></tr>
     </table>
+    ${lpDiagramSnippet('ds-diagram')}
     ${lpSectionHeading('Slat Detail')}
     <table style="border-collapse:collapse;width:100%;">
       <tr><th style="${LP_TH}">Slat</th><th style="${LP_TH}">Blank Length</th><th style="${LP_TH}">Left Attaches To</th><th style="${LP_TH}">Left Miter</th><th style="${LP_TH}">Right Attaches To</th><th style="${LP_TH}">Right Miter</th></tr>
@@ -10053,6 +10072,7 @@ function splPrintLayout(){
       <tr><td style="${LP_TD_LABEL}">Total Rail A spindles</td><td style="${LP_TD_VALUE}">${totalA}</td></tr>
       <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Total Rail B spindles</td><td style="padding:4px 8px;font-size:13px;color:#111;">${totalB}</td></tr>
     </table>
+    ${lpDiagramSnippet('spl-diagram')}
     ${lpSectionHeading('Spindle Positions')}
     <table style="border-collapse:collapse;width:100%;">
       <tr><th style="${LP_TH}">Spindle</th><th style="${LP_TH}">Reference</th><th style="${LP_TH}">Distance</th></tr>
@@ -10292,6 +10312,24 @@ function pkrShowPicketDetail(){
 
 $('pkr-picket-select').addEventListener('change', pkrShowPicketDetail);
 
+// Captures a card's live SVG diagram for inclusion in its print output.
+// Diagrams are drawn using var(--xxx) CSS custom properties that resolve
+// to this app's dark theme (light text/labels meant for a dark
+// background) -- copying that markup as-is into the white print sheet
+// would make labels nearly invisible, the same issue fixed earlier for
+// the print title text. Wrapping the copied markup in a container that
+// locally redefines those same variables to print-friendly values lets
+// the exact same SVG render correctly on white paper without needing a
+// second, separate diagram-generation code path.
+function lpDiagramSnippet(diagramId){
+  const el = document.getElementById(diagramId);
+  if(!el || !el.innerHTML.trim()) return '';
+  return `<div style="--surface:#ffffff;--concrete:#555555;--chalk:#111111;--orange:#E8590C;--rebar:#8B6B4A;--line:#999999;margin:12px 0;max-width:500px;">
+    <style>#layout-print-overlay .lp-diagram-box svg{display:block;width:100%;height:auto;}</style>
+    <div class="lp-diagram-box">${el.innerHTML}</div>
+  </div>`;
+}
+
 // Shared overlay used by every card's "Print / Save as PDF" feature. Pass
 // the print-ready content (title, input table, results table — all plain
 // black-on-white HTML) and a matching plain-text version for the Copy as
@@ -10394,6 +10432,7 @@ function pkrPrintLayout(){
       <tr><td style="${LP_TD_LABEL}">Layout type</td><td style="${LP_TD_VALUE}">${typeLabel}</td></tr>
       <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Number of pickets</td><td style="padding:4px 8px;font-size:13px;color:#111;">${N}</td></tr>
     </table>
+    ${lpDiagramSnippet('pkr-diagram')}
     ${lpSectionHeading('Picket Positions')}
     <table style="border-collapse:collapse;width:100%;">
       <tr><th style="${LP_TH}">Picket</th><th style="${LP_TH}">Reference</th><th style="${LP_TH}">Distance</th></tr>
@@ -10463,6 +10502,7 @@ function pksPrintLayout(){
       <tr><td style="${LP_TD_LABEL}">Maximum spacing</td><td style="${LP_TD_VALUE}">${toLabel(Smax, pksUnit)}</td></tr>
       <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Number of pickets</td><td style="padding:4px 8px;font-size:13px;color:#111;">${pksRows.length}</td></tr>
     </table>
+    ${lpDiagramSnippet('pks-diagram')}
     ${lpSectionHeading('Picket Detail')}
     <table style="border-collapse:collapse;width:100%;">
       <tr><th style="${LP_TH}">Picket</th><th style="${LP_TH}">Type</th><th style="${LP_TH}">Detail</th></tr>
@@ -11170,6 +11210,7 @@ function swfPrintLayout(){
       <tr><td style="${LP_TD_LABEL}">Corner treatment</td><td style="${LP_TD_VALUE}">${cornerLabel}</td></tr>
       <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Total studs</td><td style="padding:4px 8px;font-size:13px;color:#111;">${totalStuds}</td></tr>
     </table>
+    ${lpDiagramSnippet('swf-diagram')}
     ${lpSectionHeading('Stud Positions')}
     <table style="border-collapse:collapse;width:100%;">
       <tr><th style="${LP_TH}">Stud</th><th style="${LP_TH}">Reference</th><th style="${LP_TH}">Distance</th></tr>
@@ -11535,6 +11576,7 @@ function rkwPrintLayout(){
       <tr><td style="${LP_TD_LABEL}">Top incline angle</td><td style="${LP_TD_VALUE}">${fmt(angleDeg,3)}°</td></tr>
       <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Total studs</td><td style="padding:4px 8px;font-size:13px;color:#111;">${totalStuds}</td></tr>
     </table>
+    ${lpDiagramSnippet('rkw-diagram')}
     ${lpSectionHeading('Stud Positions')}
     <table style="border-collapse:collapse;width:100%;">
       <tr><th style="${LP_TH}">Stud</th><th style="${LP_TH}">Dist. from Left</th><th style="${LP_TH}">Height</th></tr>
@@ -13812,12 +13854,25 @@ function cmxUpdate(){
 
   const best = cmxFindBestMix(normalizedHex);
   if(!best){ resultsBox.innerHTML = ''; return; }
+  cmxLastBest = best;
 
   $('cmx-mix-swatch').style.background = cmxRgbToHex(best.mixRgb.r, best.mixRgb.g, best.mixRgb.b);
 
-  const rows = best.colors.map(c=>
-    `<div class="line"><span>${c.name}</span><b class="hi">${c.pct.toFixed(0)}%</b></div>`
-  ).join('');
+  cmxRenderResults();
+}
+
+let cmxLastBest = null;
+function cmxRenderResults(){
+  const resultsBox = $('cmx-results');
+  const best = cmxLastBest;
+  if(!best) return;
+  const desiredOz = parseFloat($('cmx-desired-oz').value);
+  const hasOz = isFinite(desiredOz) && desiredOz > 0;
+
+  const rows = best.colors.map(c=>{
+    const ozText = hasOz ? ` <span style="font-size:12px;color:var(--concrete);">(${(c.pct/100*desiredOz).toFixed(2)} oz)</span>` : '';
+    return `<div class="line"><span>${c.name}</span><b class="hi">${c.pct.toFixed(0)}%${ozText}</b></div>`;
+  }).join('');
   resultsBox.innerHTML = `
     <div class="section-divider">Suggested Mix</div>
     <div class="result" style="margin-top:0;padding-top:0;border-top:none;">${rows}</div>
@@ -13834,6 +13889,7 @@ $('cmx-target-picker').addEventListener('input', ()=>{
   $('cmx-target-hex').value = $('cmx-target-picker').value.toUpperCase();
   cmxUpdate();
 });
+$('cmx-desired-oz').addEventListener('input', cmxRenderResults);
 cmxUpdate();
 
 // ---- Paint & Chemical Mixes: Wood Stains ----
