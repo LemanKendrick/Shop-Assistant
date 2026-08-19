@@ -1816,7 +1816,7 @@
           <div class="combo-dist" id="st-edge-dist">–</div>
         </div>
 
-        <label>Top Points</label>
+        <label>Top Edge Points</label>
         <div class="combo-row">
           <select id="st-top-select"></select>
           <div class="combo-dist" id="st-top-dist">–</div>
@@ -2120,7 +2120,7 @@
 
       <div class="card">
         <h3>Square-Up (3-4-5 Method)</h3>
-        <p class="desc">Enter two adjacent legs — get the diagonal needed to confirm a square corner. Tape Start lets you read cumulative tape values as you run the tape along Leg A, Leg B, then the diagonal, rather than measuring each segment separately. In Decimal or Feet-Inch mode, values accept plain decimals (12.5417) or feet-inch notation (12' 6 1/2", 12-6.5) — Centimeters mode is decimal only.</p>
+        <p class="desc">Enter two adjacent legs — get the diagonal needed to confirm a square corner. Tape Start lets you read cumulative tape values as you run the tape along Leg A, Leg B, then the diagonal, rather than measuring each segment separately. In Decimal or Feet-Inch mode, values accept plain decimals (12.5417), feet-inch dash notation (12-6-1/2), or the older 12' 6 1/2" style — Centimeters mode is decimal only.</p>
 
         <div class="unit-toggle" id="squ345-unit-toggle">
           <button type="button" data-unit="decimal" class="active">Decimal</button>
@@ -2129,11 +2129,11 @@
         </div>
 
         <div class="row">
-          <div><label id="sq-a-label">Leg A (ft)</label><input type="text" id="sq-a" value="12" placeholder="e.g. 12 or 12' 6 1/2&quot;"></div>
-          <div><label id="sq-b-label">Leg B (ft)</label><input type="text" id="sq-b" value="9" placeholder="e.g. 9 or 9' 3&quot;"></div>
+          <div><label id="sq-a-label">Leg A (ft)</label><input type="text" id="sq-a" value="12" placeholder="e.g. 12 or 12-6-1/2"></div>
+          <div><label id="sq-b-label">Leg B (ft)</label><input type="text" id="sq-b" value="9" placeholder="e.g. 9 or 9-3"></div>
         </div>
         <label id="sq-tapestart-label">Tape start (ft)</label>
-        <input type="text" id="sq-tapestart" value="0" placeholder="e.g. 0 or 2' 6&quot;">
+        <input type="text" id="sq-tapestart" value="0" placeholder="e.g. 0 or 2-6">
         <div class="result">
           <div class="line"><span>Required diagonal</span><b class="hi" id="sq-diag">–</b></div>
           <div class="line"><span>Tape start</span><b id="sq-tapestart-out">–</b></div>
@@ -2264,7 +2264,7 @@
             <div><label id="rkw-rightheight-label">Right height (in)</label><input type="text" id="rkw-rightheight" inputmode="decimal" placeholder="e.g. 108"></div>
           </div>
           <label id="rkw-levelseat-label">Level seat (in)</label>
-          <input type="text" id="rkw-levelseat" inputmode="decimal" placeholder="e.g. 36">
+          <input type="text" id="rkw-levelseat" inputmode="decimal" placeholder="e.g. 3">
 
           <div class="note" id="rkw-note">Enter all dimensions to see results.</div>
 
@@ -2493,7 +2493,7 @@
     <div class="grid">
 
       <div class="card">
-        <h3>Area Shape</h3>
+        <h3>Footprint Shape</h3>
         <p class="desc">Trace the space's outline: enter a distance, then tap the direction you walked along that wall. Keep going until the outline closes back on the starting point — the area and perimeter appear automatically.</p>
 
         <div class="unit-toggle" id="sq-unit-toggle">
@@ -2615,7 +2615,7 @@
 
       <div class="card">
         <h3>Wall Shape</h3>
-        <p class="desc">Trace the wall run the same way as Area Shape: enter a distance, then tap the direction. Total wall length is the sum of every leg whether or not you close the loop — but closing it (or tapping "Close shape") also shades the outline and shows the enclosed floor area.</p>
+        <p class="desc">Trace the wall run the same way as Footprint Shape: enter a distance, then tap the direction. Total wall length is the sum of every leg whether or not you close the loop — but closing it (or tapping "Close shape") also shades the outline and shows the enclosed floor area.</p>
 
         <div class="unit-toggle" id="wl-unit-toggle">
           <button type="button" data-unit="ft" class="active">Feet</button>
@@ -2855,7 +2855,7 @@
 
       <div class="card">
         <h3>Suspended Ceiling</h3>
-        <p class="desc">Trace the space's outline like Area Shape: enter a distance, then tap the direction you walked along that wall. Insets and offsets are supported naturally — the panel grid adjusts using the traced shape's bounding box.</p>
+        <p class="desc">Trace the space's outline like Footprint Shape: enter a distance, then tap the direction you walked along that wall. Insets and offsets are supported naturally — the panel grid adjusts using the traced shape's bounding box.</p>
 
         <div class="unit-toggle" id="sceil-unit-toggle">
           <button type="button" data-unit="ft" class="active">Feet</button>
@@ -3050,7 +3050,7 @@
         </div>
         <div class="row-3" style="margin-top:10px;">
           <div><label>Decimal (ft)</label><input type="text" id="uc-decimalft" inputmode="decimal" placeholder="e.g. 12.5"></div>
-          <div><label>Feet-Inch</label><input type="text" id="uc-ftin" inputmode="decimal" placeholder="e.g. 12' 6&quot;"></div>
+          <div><label>Feet-Inch</label><input type="text" id="uc-ftin" inputmode="decimal" placeholder="e.g. 6-4-1/2"></div>
           <div><label>Centimeters</label><input type="text" id="uc-cm" inputmode="decimal" placeholder="e.g. 381"></div>
         </div>
         <div class="row-3" style="margin-top:10px;">
@@ -3301,7 +3301,7 @@
 
       <div class="card">
         <h3>Complementary Angle</h3>
-        <p class="desc">Find how much more angle is needed to reach 90°, 180°, 270°, and 360° from a given angle.</p>
+        <p class="desc">Find how much more angle is needed to reach 90° from a given angle.</p>
 
         <div class="unit-toggle" id="ca-unit-toggle">
           <button type="button" data-unit="deg" class="active">Degrees</button>
@@ -3315,20 +3315,20 @@
         </div>
 
         <div id="ca-dms-input" style="display:none;">
-          <label>Angle (degrees, minutes, seconds)</label>
-          <div class="row">
-            <div><label>D</label><input type="number" id="ca-dms-d" step="1" placeholder="35"></div>
-            <div><label>M</label><input type="number" id="ca-dms-m" step="1" placeholder="30" min="0" max="59"></div>
-          </div>
-          <label>S</label>
-          <input type="number" id="ca-dms-s" step="0.1" placeholder="15" min="0" max="59.999">
+          <label>Angle (D-M-S, e.g. 45-30-15)</label>
+          <input type="text" id="ca-dms-combined" placeholder="e.g. 45-30-15">
         </div>
 
         <div class="result">
-          <div class="line"><span>Complement to 90°</span><b class="hi" id="ca-90">–</b></div>
-          <div class="line"><span>Complement to 180°</span><b class="hi" id="ca-180">–</b></div>
-          <div class="line"><span>Complement to 270°</span><b class="hi" id="ca-270">–</b></div>
-          <div class="line"><span>Complement to 360°</span><b class="hi" id="ca-360">–</b></div>
+          <div style="font-weight:600;color:var(--chalk);">Entered Angle</div>
+          <div class="line" style="padding-left:16px;"><span>Degrees</span><b id="ca-entered-deg">–</b></div>
+          <div class="line" style="padding-left:16px;"><span>Radians</span><b id="ca-entered-rad">–</b></div>
+          <div class="line" style="padding-left:16px;"><span>D-M-S</span><b id="ca-entered-dms">–</b></div>
+
+          <div style="font-weight:600;color:var(--chalk);margin-top:12px;">Complement to 90°</div>
+          <div class="line" style="padding-left:16px;"><span>Degrees</span><b class="hi" id="ca-90-deg">–</b></div>
+          <div class="line" style="padding-left:16px;"><span>Radians</span><b class="hi" id="ca-90-rad">–</b></div>
+          <div class="line" style="padding-left:16px;"><span>D-M-S</span><b class="hi" id="ca-90-dms">–</b></div>
         </div>
         <div class="diagram-wrap">
           <div id="ca-diagram"></div>
@@ -3431,55 +3431,12 @@
       </div>
 
       <div class="card">
-        <h3>Feet-Inches ⇄ Decimal</h3>
-        <p class="desc">Convert a field measurement both directions.</p>
-        <div class="row">
-          <div><label>Feet</label><input type="number" id="fi-feet" value="12" step="1"></div>
-          <div><label>Inches</label><input type="number" id="fi-inches" value="6" step="0.125"></div>
-        </div>
-        <div class="result">
-          <div class="line"><span>Decimal feet</span><b class="hi" id="fi-decimal">–</b></div>
-        </div>
-        <label>Or enter decimal feet</label>
-        <input type="number" id="fi-dec-in" value="" step="0.01" placeholder="e.g. 12.5">
-        <div class="result">
-          <div class="line"><span>Feet + inches</span><b class="hi" id="fi-ft-in">–</b></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Spirit Levels</h3>
-        <p class="desc">Convert a bubble-vial reading into an actual out-of-level angle and drop, using the level's rated sensitivity (tilt per graduation). Useful for extrapolating a small bubble error over a longer run.</p>
-        <div class="row">
-          <div><label>Level length (in)</label><input type="number" id="svl-length" value="24" step="1"></div>
-          <div><label>Sensitivity (arcmin/division)</label>
-            <select id="svl-sensitivity">
-              <option value="5">5 (precision)</option>
-              <option value="10" selected>10 (standard carpenter)</option>
-              <option value="20">20 (economy)</option>
-              <option value="40">40 (torpedo level)</option>
-            </select>
-          </div>
-        </div>
-        <label>Bubble offset (divisions from center)</label>
-        <input type="number" id="svl-divisions" value="1" step="0.25">
-        <label>Reference distance (ft)</label>
-        <input type="number" id="svl-refdist" value="10" step="1">
-        <div class="result">
-          <div class="line"><span>Angle out of level</span><b class="hi" id="svl-angle">–</b></div>
-          <div class="line"><span>Drop over level length</span><b id="svl-droplevel">–</b></div>
-          <div class="line"><span>Drop over reference distance</span><b id="svl-dropref">–</b></div>
-        </div>
-      </div>
-
-      <div class="card">
         <h3>Survey Levels</h3>
         <p class="desc">Differential leveling: Point Elevation = Benchmark + Back Rod − Front Rod. Editing either Front Rod or Point Elevation solves for the other.</p>
 
         <div class="unit-toggle" id="svy-unit-toggle">
           <button type="button" data-unit="decimal" class="active">Decimal Feet</button>
           <button type="button" data-unit="ftin">Feet-Inch</button>
-          <button type="button" data-unit="mm">Millimeters</button>
         </div>
 
         <div class="row">
@@ -3971,6 +3928,7 @@
           <div><label>Desired volume (oz)</label><input type="number" id="pml-volume" value="32" step="1"></div>
           <div><label>Thin (%)</label>
             <select id="pml-percent">
+              <option value="0">0%</option>
               <option value="5">5%</option>
               <option value="10">10%</option>
               <option value="15">15%</option>
@@ -7423,7 +7381,8 @@ let ddNumDrawers = 0;
 
 function ddUpdateSideLapNote(){
   if(!isFinite(ddSideLapIn)){ $('dd-sidelap-note').textContent=''; return; }
-  const signed = Math.abs(ddSideLapIn) * (ddFlushMount ? -1 : 1);
+  let signed = Math.abs(ddSideLapIn) * (ddFlushMount ? -1 : 1);
+  if(signed === 0) signed = 0; // normalizes -0 to 0 so it never displays as "-0"
   $('dd-sidelap-note').textContent = 'Effective drawer side lap: ' + toLabel(signed, ddUnit) + (ddFlushMount ? ' (flush mount — negative)' : ' (overlay — positive)');
 }
 
@@ -7817,7 +7776,42 @@ ddBindField('dd-sidet', v=>ddSideTIn=v);
 ddBindField('dd-bottomt', v=>ddBottomTIn=v);
 ddBindField('dd-sidelap', v=>ddSideLapIn=v);
 
-$('dd-flush').addEventListener('change', ()=>{ ddFlushMount = $('dd-flush').checked; calcDrawerDesign(); });
+// When flush mount is on, the drawer side lap is always 0 (there is no
+// lap/overlay to speak of on a flush-mounted drawer front) -- disable the
+// field and force it to 0 rather than leaving it editable with a value
+// that wouldn't actually apply.
+//
+// Two separate pieces, deliberately kept apart: ddApplySideLapDisabledState
+// only enforces disabled+zero (flush on) or enabled (flush off) against
+// whatever value is already in the field -- it's safe to call after
+// loading a saved layout, where the field's value has already been set
+// correctly from the loaded data and must NOT be clobbered. The
+// remember/restore-on-uncheck behavior lives in the checkbox's own
+// change handler below, since that's only meaningful for a live user
+// toggling the box, not for state being loaded in from storage.
+function ddApplySideLapDisabledState(){
+  const field = $('dd-sidelap');
+  if(ddFlushMount){
+    field.value = '0';
+    field.disabled = true;
+    ddSideLapIn = 0;
+  } else {
+    field.disabled = false;
+  }
+}
+
+let ddSideLapSaved = '';
+$('dd-flush').addEventListener('change', ()=>{
+  ddFlushMount = $('dd-flush').checked;
+  if(ddFlushMount){
+    ddSideLapSaved = $('dd-sidelap').value;
+  } else {
+    $('dd-sidelap').value = ddSideLapSaved;
+    ddSideLapIn = parseLengthInput($('dd-sidelap').value, ddUnit);
+  }
+  ddApplySideLapDisabledState();
+  calcDrawerDesign();
+});
 $('dd-insetbot').addEventListener('change', ()=>{ ddInsetBottom = $('dd-insetbot').checked; calcDrawerDesign(); });
 
 document.querySelectorAll('#dd-unit-toggle button').forEach(btn=>{
@@ -7911,6 +7905,7 @@ function ddApplyStateSnapshot(data){
 
   $('dd-flush').checked = ddFlushMount;
   $('dd-insetbot').checked = ddInsetBottom;
+  ddApplySideLapDisabledState();
 
   calcDrawerDesign();
 }
@@ -8812,7 +8807,7 @@ function calcStairs(){
     'Riser Height: <b>' + toLabel(riserHeight,stUnit) + '</b>' + (inRange ? '' : ' (outside ' + riserRangeLabel + ')') + '\n' +
     'Stringer Board Length: <b>' + (isFinite(stringerLength) ? toLabel(stringerLength,stUnit) : '–') + '</b>\n' +
     'Stair Incline Angle: <b>' + (isFinite(inclineAngle) ? fmt(inclineAngle,2)+'°' : '–') + '</b>\n' +
-    'Step Throat Distance: <b>' + (isFinite(minThroat) ? toLabel(minThroat,stUnit) : '–') + '</b>';
+    'Throat Distance: <b>' + (isFinite(minThroat) ? toLabel(minThroat,stUnit) : '–') + '</b>';
 
   stPopulateComboSelect('st-edge-select', stEdgePoints);
   stPopulateComboSelect('st-top-select', stTopPoints);
@@ -9377,7 +9372,7 @@ function sq345FeetToFtIn(feetVal){
 }
 
 function sq345FmtValue(feetVal){
-  if(sq345Unit==='ftin') return sq345FeetToFtIn(feetVal);
+  if(sq345Unit==='ftin') return formatFtInDash(feetVal);
   if(sq345Unit==='metric') return fmt(feetVal/(SHAPE_UNIT_TO_FEET.m/100), 2) + ' cm';
   return fmt(feetVal,3) + ' ft';
 }
@@ -9401,7 +9396,7 @@ document.querySelectorAll('#squ345-unit-toggle button').forEach(btn=>{
       // input's base unit changes; decimal <-> feet-inch both use feet, so
       // no conversion is needed between those two
       ['sq-a','sq-b','sq-tapestart'].forEach(id=>{
-        const raw = sq345ParseInput($(id).value);
+        const raw = parseFtInDash($(id).value);
         if(raw===null) return;
         const feetVal = oldWasMetric ? raw*(SHAPE_UNIT_TO_FEET.m/100) : raw;
         const newVal = newIsMetric ? feetVal/(SHAPE_UNIT_TO_FEET.m/100) : feetVal;
@@ -9417,8 +9412,8 @@ document.querySelectorAll('#squ345-unit-toggle button').forEach(btn=>{
 });
 
 function sq345Calc(){
-  const aRaw=sq345ParseInput($('sq-a').value), bRaw=sq345ParseInput($('sq-b').value);
-  const tapeStartRaw=sq345ParseInput($('sq-tapestart').value) || 0;
+  const aRaw=parseFtInDash($('sq-a').value), bRaw=parseFtInDash($('sq-b').value);
+  const tapeStartRaw=parseFtInDash($('sq-tapestart').value) || 0;
   if(!aRaw||!bRaw){
     $('sq-diag').textContent='–';
     ['sq-tapestart-out','sq-reading1','sq-reading2','sq-reading3'].forEach(id=>$(id).textContent='–');
@@ -10220,7 +10215,7 @@ document.querySelectorAll('#pkr-unit-toggle button').forEach(btn=>{
   });
 });
 
-function pkrRenderDiagram(N, opening, picketWidth, positions, inclineDeg){
+function pkrRenderDiagram(N, opening, picketWidth, positions, inclineDeg, highlightIdx){
   const box = $('pkr-diagram');
   if(!N || !isFinite(opening) || opening<=0){ box.innerHTML=''; return; }
 
@@ -10254,7 +10249,7 @@ function pkrRenderDiagram(N, opening, picketWidth, positions, inclineDeg){
   const pw = picketWidth*scale;
   const railSlope = (railTopY2-railTopY1)/(opening*scale); // svg dY per svg dX
   let pickets = '';
-  positions.forEach(cx=>{
+  positions.forEach((cx,idx)=>{
     const centerX = toX(cx);
     const leftX = centerX - pw/2, rightX = centerX + pw/2;
     const railTopYAtCenter = railTopY1 + (cx/opening)*(railTopY2-railTopY1);
@@ -10264,7 +10259,8 @@ function pkrRenderDiagram(N, opening, picketWidth, positions, inclineDeg){
     const botLeftY = railBotYAtCenter - railSlope*(pw/2);
     const botRightY = railBotYAtCenter + railSlope*(pw/2);
     const pts = `${leftX.toFixed(1)},${topLeftY.toFixed(1)} ${rightX.toFixed(1)},${topRightY.toFixed(1)} ${rightX.toFixed(1)},${botRightY.toFixed(1)} ${leftX.toFixed(1)},${botLeftY.toFixed(1)}`;
-    pickets += `<polygon points="${pts}" fill="var(--rebar)" stroke="var(--chalk)" stroke-width="1"/>`;
+    const isSelected = (idx+1) === highlightIdx;
+    pickets += `<polygon points="${pts}" fill="${isSelected?'var(--orange)':'var(--rebar)'}" stroke="var(--chalk)" stroke-width="1"/>`;
   });
 
   const caption = `<text x="${svgW/2}" y="${svgH-16}" text-anchor="middle" font-family="Oswald, sans-serif" font-size="12" letter-spacing=".03em" fill="var(--concrete)">${N} PICKETS — RECTANGULAR LAYOUT</text>`;
@@ -10305,9 +10301,10 @@ function pkrShowPicketDetail(){
   const sel = $('pkr-picket-select');
   if(!pkrLayoutData || !sel.value){ detailEl.textContent = '–'; return; }
   const i = parseInt(sel.value) - 1; // 0-based index
-  const { W, positions } = pkrLayoutData;
+  const { N, W, L, inclineDeg, positions } = pkrLayoutData;
   const leftEdge = positions[i] - W/2;
   detailEl.innerHTML = 'Distance from left edge to left edge of picket: <b class="hi">' + toLabel(leftEdge, pkrUnit) + '</b>';
+  pkrRenderDiagram(N, L, W, positions, inclineDeg, i+1);
 }
 
 $('pkr-picket-select').addEventListener('change', pkrShowPicketDetail);
@@ -10562,7 +10559,7 @@ function calcPicketRect(){
     positions.push(endGap + W/2 + i*(spacing+W));
   }
   pkrRenderDiagram(N, L, W, positions, inclineDeg);
-  pkrLayoutData = { N, W, positions };
+  pkrLayoutData = { N, W, L, inclineDeg, positions };
   pkrRenderPicketSelect();
 }
 
@@ -13521,19 +13518,6 @@ bindAll(['st-rise','st-target'], ()=>{
   $('st-tread').textContent = fmt(tread,2) + ' in';
 });
 
-bindAll(['fi-feet','fi-inches'], ()=>{
-  const f=parseFloat($('fi-feet').value)||0, i=parseFloat($('fi-inches').value)||0;
-  $('fi-decimal').textContent = fmt(f + i/12, 3) + ' ft';
-});
-
-$('fi-dec-in').addEventListener('input', ()=>{
-  const d = parseFloat($('fi-dec-in').value);
-  if(!d && d!==0){ $('fi-ft-in').textContent='–'; return; }
-  const feet = Math.floor(d);
-  const inches = (d-feet)*12;
-  $('fi-ft-in').textContent = feet + " ft " + fmt(inches,2) + ' in';
-});
-
 // ---- Paint & Chemical Mixes: Shellac ----
 document.querySelectorAll('#pms-mode-toggle button').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -13920,12 +13904,33 @@ async function wstLoad(){
   wstRenderBrandsList();
   wstRenderStainNamesList();
   wstRenderEntriesList();
+  wstCheckExistingEntry();
   if(typeof stmodRefreshBrandCombo === 'function') stmodRefreshBrandCombo();
 }
 
 function wstGenId(){ return 'wst' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
 function wstIsValidHex(hex){ return /^#[0-9A-Fa-f]{6}$/.test(hex); }
+
+// looks up whether the currently-selected Brand + Stain Name + Wood
+// combination already has a saved entry. If so, shows that entry's hex
+// color (both in the text field and the preview swatch) so the user can
+// see what's already on file before adding/overwriting. If not, clears
+// the hex field and resets the swatch to white, signaling this would be
+// a brand new combination.
+function wstCheckExistingEntry(){
+  const brand = $('wst-brand').value;
+  const stainName = $('wst-stainname').value;
+  const wood = $('wst-wood').value;
+  const match = wstData.entries.find(e=>e.brand===brand && e.stainName===stainName && e.wood===wood);
+  if(match){
+    $('wst-hex').value = match.hexColor;
+    $('wst-swatch').style.background = match.hexColor;
+  } else {
+    $('wst-hex').value = '';
+    $('wst-swatch').style.background = '#FFFFFF';
+  }
+}
 
 function wstRenderBrandCombo(){
   const sel = $('wst-brand');
@@ -14090,6 +14095,7 @@ $('wst-add-brand-btn').addEventListener('click', ()=>{
   wstPersist();
   $('wst-new-brand').value = '';
   wstRenderBrandsList(); wstRenderBrandCombo();
+  wstCheckExistingEntry();
 });
 
 $('wst-add-stainname-btn').addEventListener('click', ()=>{
@@ -14099,6 +14105,7 @@ $('wst-add-stainname-btn').addEventListener('click', ()=>{
   wstPersist();
   $('wst-new-stainname').value = '';
   wstRenderStainNamesList(); wstRenderStainNameCombo();
+  wstCheckExistingEntry();
 });
 
 $('wst-add-entry-btn').addEventListener('click', ()=>{
@@ -14112,6 +14119,8 @@ $('wst-add-entry-btn').addEventListener('click', ()=>{
   wstRenderEntriesList();
   if(typeof stmodRefreshBrandCombo === 'function') stmodRefreshBrandCombo();
 });
+
+['wst-brand','wst-stainname','wst-wood'].forEach(id=>$(id).addEventListener('change', wstCheckExistingEntry));
 
 wstLoad();
 
@@ -14388,19 +14397,70 @@ $('uc-fraction').addEventListener('input', ()=>ucUpdateFrom('uc-fraction','fract
 $('uc-mm').addEventListener('input', ()=>ucUpdateFrom('uc-mm','mm'));
 
 // second group: Decimal (ft) / Feet-Inch / Centimeters, canonically feet.
-// Reuses Square-Up's feet-inch parser/formatter and the shared meters
-// conversion constant (divided by 100 for centimeters) rather than
-// duplicating that logic.
+// The Feet-Inch field here (and in Square-Up) uses dash notation
+// throughout (6-4-1/2 = 6 feet, 4 and 1/2 inches) rather than Survey
+// Levels' apostrophe/quote notation (6' 4 1/2"), so it gets its own
+// parser/formatter instead of reusing sq345ParseInput/sq345FeetToFtIn --
+// those stay untouched for Survey Levels, which still expects its
+// existing format. Named generically (not "uc"-prefixed) since Square-Up
+// uses them too.
 const UC_FT_PER_CM = SHAPE_UNIT_TO_FEET.m/100;
+
+// accepts "F-I-N/D" (6-4-1/2), "F-I" with no fraction (6-4), the older
+// apostrophe/quote notation (6' 4 1/2") as a fallback for anyone used to
+// that format, or a plain decimal-feet fallback (6.375) for anyone who
+// just types a number.
+function parseFtInDash(str){
+  if(str===null || str===undefined) return null;
+  str = String(str).trim();
+  if(!str) return null;
+
+  const dashMatch = str.match(/^(-)?(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)(?:-(\d+)\/(\d+))?$/);
+  if(dashMatch){
+    const sign = dashMatch[1] ? -1 : 1;
+    const feet = parseFloat(dashMatch[2]);
+    let inches = parseFloat(dashMatch[3]);
+    if(dashMatch[4] && dashMatch[5]) inches += parseFloat(dashMatch[4])/parseFloat(dashMatch[5]);
+    return sign*(feet + inches/12);
+  }
+
+  const quoteMatch = str.match(/^(\d+(?:\.\d+)?)\s*[-'\s]\s*(\d+(?:\.\d+)?)(?:\s+(\d+)\/(\d+))?\s*["]?$/);
+  if(quoteMatch){
+    const feet = parseFloat(quoteMatch[1]);
+    let inches = parseFloat(quoteMatch[2]);
+    if(quoteMatch[3] && quoteMatch[4]) inches += parseFloat(quoteMatch[3])/parseFloat(quoteMatch[4]);
+    return feet + inches/12;
+  }
+
+  const dec = parseFloat(str);
+  return isFinite(dec) ? dec : null;
+}
+
+// formats decimal feet as "F-I-N/D", rounding to the nearest 1/16" (and
+// carrying into the next foot if that rounds a full 12" of inches).
+function formatFtInDash(feetVal){
+  const sign = feetVal<0 ? '-' : '';
+  feetVal = Math.abs(feetVal);
+  const totalSixteenths = Math.round(feetVal*12*16);
+  const feet = Math.floor(totalSixteenths/192);
+  const remainder = totalSixteenths - feet*192;
+  const inchWhole = Math.floor(remainder/16);
+  const sixteenths = remainder - inchWhole*16;
+  if(sixteenths===0) return sign + feet + '-' + inchWhole;
+  function gcd(a,b){ return b===0?a:gcd(b,a%b); }
+  const g = gcd(sixteenths,16);
+  return sign + feet + '-' + inchWhole + '-' + (sixteenths/g)+'/'+(16/g);
+}
+
 function ucFtUpdateFrom(sourceId, unit){
   let feetVal;
   if(unit==='decimalft') feetVal = parseFloat($(sourceId).value);
-  else if(unit==='ftin') feetVal = sq345ParseInput($(sourceId).value);
+  else if(unit==='ftin') feetVal = parseFtInDash($(sourceId).value);
   else feetVal = parseFloat($(sourceId).value) * UC_FT_PER_CM; // cm
 
-  if(!isFinite(feetVal)) return; // leave the other fields showing their last valid value
+  if(feetVal===null || !isFinite(feetVal)) return; // leave the other fields showing their last valid value
   if(sourceId !== 'uc-decimalft') $('uc-decimalft').value = (Math.round(feetVal*10000)/10000).toString();
-  if(sourceId !== 'uc-ftin') $('uc-ftin').value = sq345FeetToFtIn(feetVal);
+  if(sourceId !== 'uc-ftin') $('uc-ftin').value = formatFtInDash(feetVal);
   if(sourceId !== 'uc-cm') $('uc-cm').value = (Math.round((feetVal/UC_FT_PER_CM)*100)/100).toString();
 }
 $('uc-decimalft').addEventListener('input', ()=>ucFtUpdateFrom('uc-decimalft','decimalft'));
@@ -15045,16 +15105,30 @@ function caFmtDMS(deg){
   const {d,m,s} = caDecToDMS(deg);
   return d + '° ' + m + '\u2032 ' + fmt(s,2) + '\u2033';
 }
+// parses a combined "dd-mm-ss" string (degrees may be negative, e.g.
+// "-45-30-15"; minutes/seconds are optional and default to 0, e.g. "45"
+// or "45-30" are both valid) into decimal degrees.
+function caParseDMSString(str){
+  str = (str||'').trim();
+  if(!str) return null;
+  let sign = 1;
+  if(str.startsWith('-')){ sign = -1; str = str.slice(1); }
+  if(!str) return null;
+  const parts = str.split('-').map(p=>parseFloat(p));
+  if(!isFinite(parts[0])) return null;
+  const d = parts[0], m = parts[1]||0, s = parts[2]||0;
+  return sign*(d + m/60 + s/3600);
+}
+function caFormatDMSString(deg){
+  const {d,m,s} = caDecToDMS(deg);
+  return d + '-' + m + '-' + fmt(s,2);
+}
 
 // reads the current angle as decimal degrees, regardless of which input
 // mode is active
 function caGetAngleDeg(){
   if(caUnit==='dms'){
-    const d = parseFloat($('ca-dms-d').value);
-    const m = parseFloat($('ca-dms-m').value) || 0;
-    const s = parseFloat($('ca-dms-s').value) || 0;
-    if(!isFinite(d)) return null;
-    return caDMSToDec(d,m,s);
+    return caParseDMSString($('ca-dms-combined').value);
   }
   const raw = parseFloat($('ca-angle').value);
   if(!isFinite(raw)) return null;
@@ -15077,10 +15151,7 @@ document.querySelectorAll('#ca-unit-toggle button').forEach(btn=>{
 
     if(currentDeg!==null){
       if(newUnit==='dms'){
-        const {d,m,s} = caDecToDMS(currentDeg);
-        $('ca-dms-d').value = d;
-        $('ca-dms-m').value = m;
-        $('ca-dms-s').value = fmt(s,2);
+        $('ca-dms-combined').value = caFormatDMSString(currentDeg);
       } else {
         const val = newUnit==='deg' ? currentDeg : currentDeg*(Math.PI/180);
         $('ca-angle').value = fmt(val,4);
@@ -15149,24 +15220,23 @@ function caRenderDiagram(angleDeg){
 function calcComplementaryAngle(){
   const angleDeg = caGetAngleDeg();
   if(angleDeg===null){
-    ['ca-90','ca-180','ca-270','ca-360'].forEach(id=>$(id).textContent='–');
+    ['ca-entered-deg','ca-entered-rad','ca-entered-dms','ca-90-deg','ca-90-rad','ca-90-dms'].forEach(id=>$(id).textContent='–');
     $('ca-diagram').innerHTML = '';
     return;
   }
 
-  [90,180,270,360].forEach(ref=>{
-    const compDeg = ref-angleDeg;
-    let text;
-    if(caUnit==='dms') text = caFmtDMS(compDeg);
-    else if(caUnit==='deg') text = fmt(compDeg,4) + '°';
-    else text = fmt(compDeg*(Math.PI/180),4) + ' rad';
-    $('ca-'+ref).textContent = text;
-  });
+  const compDeg = 90-angleDeg;
+  $('ca-entered-deg').textContent = fmt(angleDeg,4) + '°';
+  $('ca-entered-rad').textContent = fmt(angleDeg*(Math.PI/180),4) + ' rad';
+  $('ca-entered-dms').textContent = caFmtDMS(angleDeg);
+  $('ca-90-deg').textContent = fmt(compDeg,4) + '°';
+  $('ca-90-rad').textContent = fmt(compDeg*(Math.PI/180),4) + ' rad';
+  $('ca-90-dms').textContent = caFmtDMS(compDeg);
 
   caRenderDiagram(angleDeg);
 }
 $('ca-angle').addEventListener('input', calcComplementaryAngle);
-['ca-dms-d','ca-dms-m','ca-dms-s'].forEach(id=>$(id).addEventListener('input', calcComplementaryAngle));
+$('ca-dms-combined').addEventListener('input', calcComplementaryAngle);
 caToggleInputMode();
 
 // ---- Calculators: Slopes ----
@@ -15429,47 +15499,12 @@ $('fnt-size').addEventListener('change', fstNutCalc);
 fstPopulate($('fnt-size'), FST_NUT_HEX_ORDER);
 fstNutCalc();
 
-// ---- Calculators: Spirit Levels ----
-function calcSpiritLevels(){
-  const lengthIn = parseFloat($('svl-length').value);
-  const sensitivity = parseFloat($('svl-sensitivity').value);
-  const divisions = parseFloat($('svl-divisions').value);
-  const refDistFt = parseFloat($('svl-refdist').value);
-
-  if(!lengthIn || !isFinite(divisions) || !refDistFt){
-    ['svl-angle','svl-droplevel','svl-dropref'].forEach(id=>$(id).textContent='–');
-    return;
-  }
-
-  const angleDeg = (sensitivity*divisions)/60;
-  const angleRad = angleDeg*(Math.PI/180);
-  const dropLevelIn = (lengthIn/12)*Math.tan(angleRad)*12;
-  const dropRefIn = refDistFt*Math.tan(angleRad)*12;
-
-  $('svl-angle').textContent = fmt(angleDeg,4) + '° (' + fmt(sensitivity*divisions,2) + '\u2032)';
-  $('svl-droplevel').textContent = fmt(dropLevelIn,4) + ' in';
-  $('svl-dropref').textContent = fmt(dropRefIn,4) + ' in';
-}
-['svl-length','svl-sensitivity','svl-divisions','svl-refdist'].forEach(id=>{
-  $(id).addEventListener('input', calcSpiritLevels);
-  $(id).addEventListener('change', calcSpiritLevels);
-});
-calcSpiritLevels();
-
 // ---- Calculators: Survey Levels ----
-const SVY_MM_PER_FT = 304.8;
 let svyUnit = 'decimal';
 let svyUpdating = false; // guard against Front Rod / Point Elevation re-triggering each other
 
 // parses whatever's typed, under the currently active unit, to canonical feet
 function svyParseInput(str){
-  if(svyUnit==='mm'){
-    if(str===null || str===undefined) return null;
-    str = String(str).trim();
-    if(!str) return null;
-    const v = parseFloat(str);
-    return isFinite(v) ? v/SVY_MM_PER_FT : null;
-  }
   return sq345ParseInput(str); // decimal / feet-inch — auto-detects notation, unchanged
 }
 
@@ -15478,14 +15513,12 @@ function svyParseInput(str){
 // display but breaks re-parsing once the value is typed back in)
 function svyInputValue(feetVal){
   if(!isFinite(feetVal)) return '';
-  if(svyUnit==='mm') return (feetVal*SVY_MM_PER_FT).toFixed(2).replace(/\.?0+$/,'') || '0';
   if(svyUnit==='ftin') return sq345FeetToFtIn(feetVal);
   return (Math.round(feetVal*10000)/10000).toString();
 }
 
 // value for read-only display — includes unit suffix
 function svyFmtValue(feetVal){
-  if(svyUnit==='mm') return fmt(feetVal*SVY_MM_PER_FT, 1) + ' mm';
   if(svyUnit==='ftin') return sq345FeetToFtIn(feetVal);
   return fmt(feetVal,3) + ' ft';
 }
@@ -15501,7 +15534,7 @@ document.querySelectorAll('#svy-unit-toggle button').forEach(btn=>{
 
     svyUnit = btn.dataset.unit;
     document.querySelectorAll('#svy-unit-toggle button').forEach(b=>b.classList.toggle('active', b===btn));
-    $('svy-distance-label').textContent = 'Distance (' + (svyUnit==='mm' ? 'mm' : svyUnit==='ftin' ? 'ft-in' : 'ft') + ')';
+    $('svy-distance-label').textContent = 'Distance (' + (svyUnit==='ftin' ? 'ft-in' : 'ft') + ')';
 
     // reformat every field under the NEW unit
     if(bmFt!==null) $('svy-bm').value = svyInputValue(bmFt);
@@ -15889,7 +15922,7 @@ function wsgToggleLayoutType(){
 }
 $('wsg-layouttype').addEventListener('change', ()=>{ wsgToggleLayoutType(); calcWheelSegments(); });
 
-function wsgRenderDiagram(blankLength, blankWidth, miterAngleRad, points, numSegForCircle, showCircle){
+function wsgRenderDiagram(blankLength, blankWidth, miterAngleRad, points, numSegForCircle, showCircle, outerR, innerR){
   const box = $('wsg-diagram');
   const svgW=640, svgH = showCircle ? 520 : 280, pad=50;
 
@@ -15899,12 +15932,13 @@ function wsgRenderDiagram(blankLength, blankWidth, miterAngleRad, points, numSeg
   const x0 = (svgW-drawLen)/2, y0 = 50;
 
   const miterRun = drawW*Math.tan(miterAngleRad);
-  const outerL = [x0, y0], outerR = [x0+drawLen, y0];
-  const innerL = [x0+miterRun, y0+drawW], innerR = [x0+drawLen-miterRun, y0+drawW];
+  const outerL = [x0, y0], outerR_pt = [x0+drawLen, y0];
+  const innerL = [x0+miterRun, y0+drawW], innerR_pt = [x0+drawLen-miterRun, y0+drawW];
 
-  const outline = `<polygon points="${outerL[0].toFixed(1)},${outerL[1].toFixed(1)} ${outerR[0].toFixed(1)},${outerR[1].toFixed(1)} ${innerR[0].toFixed(1)},${innerR[1].toFixed(1)} ${innerL[0].toFixed(1)},${innerL[1].toFixed(1)}" fill="var(--rebar)" fill-opacity="0.25" stroke="var(--chalk)" stroke-width="2"/>`;
+  const outline = `<polygon points="${outerL[0].toFixed(1)},${outerL[1].toFixed(1)} ${outerR_pt[0].toFixed(1)},${outerR_pt[1].toFixed(1)} ${innerR_pt[0].toFixed(1)},${innerR_pt[1].toFixed(1)} ${innerL[0].toFixed(1)},${innerL[1].toFixed(1)}" fill="var(--rebar)" fill-opacity="0.25" stroke="var(--chalk)" stroke-width="2"/>`;
 
   let marks = '';
+  let firstOuter = null, lastOuter = null;
   points.forEach(p=>{
     const ox = x0 + p.chordDist*scale;
     const oy = (y0+drawW) - p.outerPerp*scale;
@@ -15912,7 +15946,18 @@ function wsgRenderDiagram(blankLength, blankWidth, miterAngleRad, points, numSeg
     const color = (p.label==='End R'||p.label==='End L') ? 'var(--good)' : 'var(--orange)';
     marks += `<line x1="${ox.toFixed(1)}" y1="${oy.toFixed(1)}" x2="${ox.toFixed(1)}" y2="${iy.toFixed(1)}" stroke="${color}" stroke-width="1.5"/>`;
     marks += `<circle cx="${ox.toFixed(1)}" cy="${oy.toFixed(1)}" r="3" fill="${color}"/>`;
+    if(firstOuter===null) firstOuter = [ox,oy];
+    lastOuter = [ox,oy];
   });
+
+  // the true outer arc through those same mark points, drawn as an actual
+  // circular arc (not a faceted polyline) using the real outer radius so
+  // it's geometrically accurate, not just an approximation
+  let outerArc = '';
+  if(firstOuter && lastOuter && isFinite(outerR)){
+    const r = outerR*scale;
+    outerArc = `<path d="M${firstOuter[0].toFixed(1)},${firstOuter[1].toFixed(1)} A${r.toFixed(1)},${r.toFixed(1)} 0 0 1 ${lastOuter[0].toFixed(1)},${lastOuter[1].toFixed(1)}" fill="none" stroke="#E63946" stroke-width="2"/>`;
+  }
 
   const lenLabel = `<text x="${(x0+drawLen/2).toFixed(1)}" y="${(y0-14).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--concrete)">BLANK LENGTH ${fmt(blankLength,3)}</text>`;
   const widthLabel = `<text x="${(x0-10).toFixed(1)}" y="${(y0+drawW/2).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--concrete)">W ${fmt(blankWidth,3)}</text>`;
@@ -15920,7 +15965,7 @@ function wsgRenderDiagram(blankLength, blankWidth, miterAngleRad, points, numSeg
 
   // ---- bottom panel: full wheel overview (Segments mode only, since
   // Inner Chord Length mode doesn't guarantee a whole number of segments) ----
-  let circleCaption = '', wedges = '';
+  let circleCaption = '', wedges = '', innerCircle = '';
   if(showCircle){
     const circleCy = 380, circleR = 110;
     const numSegs = Math.max(3, Math.round(numSegForCircle));
@@ -15937,15 +15982,22 @@ function wsgRenderDiagram(blankLength, blankWidth, miterAngleRad, points, numSeg
       wedges += `<path d="M${svgW/2},${circleCy} L${p0[0].toFixed(1)},${p0[1].toFixed(1)} A${circleR},${circleR} 0 0 1 ${p1[0].toFixed(1)},${p1[1].toFixed(1)} Z" fill="${fill}" fill-opacity="${opacity}" stroke="var(--chalk)" stroke-width="1"/>`;
     }
     circleCaption = `<text x="${svgW/2}" y="${(circleCy-circleR-16).toFixed(1)}" text-anchor="middle" font-family="Oswald, sans-serif" font-size="12" letter-spacing=".03em" fill="var(--concrete)">FULL WHEEL — ${numSegs} SEGMENTS (HIGHLIGHTED = DETAIL ABOVE)</text>`;
+
+    if(isFinite(innerR) && isFinite(outerR) && outerR>0){
+      const innerCircleR = circleR*(innerR/outerR);
+      innerCircle = `<circle cx="${svgW/2}" cy="${circleCy}" r="${innerCircleR.toFixed(1)}" fill="none" stroke="var(--chalk)" stroke-width="1" stroke-dasharray="4,3"/>`;
+    }
   }
 
   box.innerHTML = `<svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">
     ${caption1}
     ${outline}
     ${marks}
+    ${outerArc}
     ${lenLabel}${widthLabel}
     ${circleCaption}
     ${wedges}
+    ${innerCircle}
   </svg>`;
 }
 
@@ -16053,7 +16105,7 @@ function calcWheelSegments(){
   wsgPoints = wsgComputePoints(outerR, innerR, halfThetaRad, numMarks, blankWidth, innerChordFinal);
   wsgPopulatePointSelect();
   wsgShowSelectedPoint();
-  wsgRenderDiagram(rawBlankLength, blankWidth, halfThetaRad, wsgPoints, (2*Math.PI)/thetaRad, layoutType==='segments');
+  wsgRenderDiagram(rawBlankLength, blankWidth, halfThetaRad, wsgPoints, (2*Math.PI)/thetaRad, layoutType==='segments', outerR, innerR);
 }
 
 ['wsg-segwidth','wsg-outerradius','wsg-numsegs','wsg-innerchord','wsg-nummarks'].forEach(id=>{
@@ -16750,7 +16802,7 @@ function calcClshmShims(){
   $(id).addEventListener('input', calcClshmShims);
 });
 
-// ---- Tool Adjustment: Suspended Ceiling (shape tracer, modeled on Area Shape) ----
+// ---- Tool Adjustment: Suspended Ceiling (shape tracer, modeled on Footprint Shape) ----
 let sceilSegments = []; // { dir, dist } — dist stored in canonical feet
 let sceilUnit = 'ft';
 let sceilCurrentFileName = null; // name of the loaded/saved file, or null for "Not Saved"
