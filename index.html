@@ -1399,7 +1399,7 @@
         <div class="result">
           <div class="line"><span>Average caliper reading</span><b id="pa-avg">–</b></div>
           <div class="line"><span>Difference</span><b id="pa-diff">–</b></div>
-          <div class="line"><span>Turn revolutions</span><b class="hi" id="pa-turns">–</b></div>
+          <div class="line"><span id="pa-turns-label">Turn revolutions</span><b class="hi" id="pa-turns">–</b></div>
         </div>
       </div>
 
@@ -1624,6 +1624,7 @@
         <div class="section-divider">Drawer Box Heights</div>
         <p class="desc">Fill these in from Drawer 1 (bottom) upward. Leave the rest blank once you've used all the space.</p>
         <div id="dd-heights-list"></div>
+        <div class="alert-banner" id="dd-slide-clearance-alert" style="display:none;"></div>
 
         <div class="result">
           <div class="line"><span>Drawers entered</span><b id="dd-drawer-count">–</b></div>
@@ -3418,15 +3419,17 @@
 
       <div class="card">
         <h3>Stair Rise &amp; Run</h3>
-        <p class="desc">Even riser count and tread depth for a given total rise.</p>
+        <p class="desc">Even riser count for a given total rise, plus the total horizontal run for a given tread width.</p>
         <label>Total rise (in)</label>
         <input type="number" id="st-rise" value="34" step="0.5">
         <label>Target riser height (in)</label>
         <input type="number" id="st-target" value="7" step="0.25">
+        <label>Tread width (in)</label>
+        <input type="number" id="st-rr-treadwidth" value="10" step="0.25">
         <div class="result">
           <div class="line"><span>Number of risers</span><b id="st-count">–</b></div>
           <div class="line"><span>Actual riser height</span><b class="hi" id="st-actual">–</b></div>
-          <div class="line"><span>Suggested tread depth</span><b id="st-tread">–</b></div>
+          <div class="line"><span>Horizontal run</span><b class="hi" id="st-run">–</b></div>
         </div>
       </div>
 
@@ -3546,6 +3549,29 @@
         </div>
         <div class="diagram-wrap">
           <div id="cvs-diagram"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Ratio Solver</h3>
+        <p class="desc">Solve a proportion — enter any 3 of the 4 values and the 4th is computed automatically. Editing any value re-solves whichever value was filled in least recently.</p>
+
+        <div style="display:flex;align-items:center;gap:16px;justify-content:center;margin-top:10px;">
+          <div style="flex:1;max-width:180px;">
+            <label>Value 1</label>
+            <input type="text" inputmode="decimal" id="rs-v1" value="2">
+            <div style="border-top:2px solid var(--chalk);margin:8px 0;"></div>
+            <label>Value 2</label>
+            <input type="text" inputmode="decimal" id="rs-v2" value="4">
+          </div>
+          <div style="font-size:28px;font-weight:600;color:var(--chalk);padding-top:18px;">=</div>
+          <div style="flex:1;max-width:180px;">
+            <label>Value 3</label>
+            <input type="text" inputmode="decimal" id="rs-v3" value="3">
+            <div style="border-top:2px solid var(--chalk);margin:8px 0;"></div>
+            <label>Value 4</label>
+            <input type="text" inputmode="decimal" id="rs-v4" value="" placeholder="solved">
+          </div>
         </div>
       </div>
 
@@ -6668,20 +6694,21 @@ const PLANER_IN_PER_REV = 0.068;
 function calcPlanerAdjustment(){
   const cals = [paCal1Inches, paCal2Inches, paCal3Inches].filter(v=>isFinite(v));
   if(!cals.length){
-    $('pa-avg').textContent='–'; $('pa-diff').textContent='–'; $('pa-turns').textContent='–';
+    $('pa-avg').textContent='–'; $('pa-diff').textContent='–'; $('pa-turns').textContent='–'; $('pa-turns-label').textContent='Turn revolutions';
     return;
   }
   const avg = cals.reduce((a,b)=>a+b,0)/cals.length;
   $('pa-avg').textContent = toLabel(avg, paUnit);
 
   if(!isFinite(paTargetInches)){
-    $('pa-diff').textContent='–'; $('pa-turns').textContent='–';
+    $('pa-diff').textContent='–'; $('pa-turns').textContent='–'; $('pa-turns-label').textContent='Turn revolutions';
     return;
   }
   const diff = avg - paTargetInches;
   $('pa-diff').textContent = toLabel(diff, paUnit);
   const turns = diff / PLANER_IN_PER_REV;
-  $('pa-turns').textContent = fmt(turns,2) + ' turns';
+  $('pa-turns-label').textContent = turns >= 0 ? 'Turn revolutions clockwise' : 'Turn revolutions counter clockwise';
+  $('pa-turns').textContent = fmt(Math.abs(turns),2) + ' turns';
 }
 
 $('pa-target').addEventListener('input', ()=>{ paTargetInches = parseLengthInput($('pa-target').value, paUnit); calcPlanerAdjustment(); });
@@ -7659,6 +7686,25 @@ function ddRenderDiagram(openH, openW, frontWidth, lap, railW, spaceBottoms, spa
   </svg>`;
 }
 
+function ddCheckSlideClearance(){
+  const alertEl = $('dd-slide-clearance-alert');
+  const minClearance = ddSlideWIn + ddSlideOffIn;
+  if(!isFinite(minClearance)){ alertEl.style.display='none'; return; }
+  const failingDrawers = [];
+  for(let i=0;i<9;i++){
+    const h = ddHeights[i];
+    if(!isFinite(h) || h<=0) continue;
+    if(h <= minClearance) failingDrawers.push(i+1);
+  }
+  if(failingDrawers.length){
+    const label = failingDrawers.length===1 ? ('Drawer '+failingDrawers[0]+' height') : ('Drawers '+failingDrawers.join(', ')+' heights');
+    alertEl.textContent = label + ' must be greater than slide width + slide offset (' + toLabel(minClearance, ddUnit) + ')';
+    alertEl.style.display = '';
+  } else {
+    alertEl.style.display = 'none';
+  }
+}
+
 function calcDrawerDesign(){
   const openH = ddOpenHIn;
   const botGap = isFinite(ddBotGapIn) ? ddBotGapIn : 0;
@@ -7666,6 +7712,7 @@ function calcDrawerDesign(){
   const railW = isFinite(ddRailWIn) ? ddRailWIn : 0;
 
   ddUpdateSideLapNote();
+  ddCheckSlideClearance();
   calcDrawerBoxDimensions();
 
   const botGapDisp = isFinite(ddBotGapIn) ? ddBotGapIn : NaN;
@@ -9491,11 +9538,10 @@ document.querySelectorAll('#os-unit-toggle button').forEach(btn=>{
 
 let osLayoutData = null; // { L, N, leftGap, objWidth, spacing } — canonical inches, set whenever a layout successfully renders
 
-function osRenderDiagram(L, N, leftGap, objWidth, spacing){
+function osRenderDiagram(L, N, leftGap, objWidth, spacing, highlightIdx){
   const box = $('os-diagram');
-  if(!N || !isFinite(L) || L<=0){ box.innerHTML=''; osLayoutData=null; osRenderObjectSelect(); return; }
+  if(!N || !isFinite(L) || L<=0){ box.innerHTML=''; osLayoutData=null; return; }
   osLayoutData = { L, N, leftGap, objWidth, spacing };
-  osRenderObjectSelect();
 
   const svgW=640, svgH=260, padX=40, padTop=60, padBottom=100;
   const scale = (svgW-padX*2)/L;
@@ -9529,7 +9575,8 @@ function osRenderDiagram(L, N, leftGap, objWidth, spacing){
     const x = toX(left);
     const w = Math.max(objWidth*scale, 2);
     const cx = x + w/2;
-    objects += `<rect x="${x.toFixed(1)}" y="${(rowY-objH/2).toFixed(1)}" width="${w.toFixed(1)}" height="${objH}" fill="var(--rebar)" stroke="var(--chalk)" stroke-width="1"/>`;
+    const isSelected = (i+1) === highlightIdx;
+    objects += `<rect x="${x.toFixed(1)}" y="${(rowY-objH/2).toFixed(1)}" width="${w.toFixed(1)}" height="${objH}" fill="${isSelected?'var(--orange)':'var(--rebar)'}" stroke="var(--chalk)" stroke-width="1"/>`;
     const onStride = i % labelStride === 0;
     const forceLast = (i === N-1) && (i - lastShown >= labelStride);
     if(onStride || forceLast){
@@ -9596,11 +9643,12 @@ function osShowObjectDetail(){
   const sel = $('os-object-select');
   if(!osLayoutData || !sel.value){ detailEl.textContent = '–'; return; }
   const i = parseInt(sel.value) - 1; // 0-based index
-  const { leftGap, objWidth, spacing } = osLayoutData;
+  const { L, N, leftGap, objWidth, spacing } = osLayoutData;
   const left = leftGap + i*(objWidth+spacing);
   const right = left + objWidth;
   detailEl.innerHTML = 'Left edge from left end of space: <b class="hi">' + toLabel(left, osUnit) + '</b>'
     + ' &nbsp;·&nbsp; Right edge: <b class="hi">' + toLabel(right, osUnit) + '</b>';
+  osRenderDiagram(L, N, leftGap, objWidth, spacing, i+1);
 }
 
 $('os-object-select').addEventListener('change', osShowObjectDetail);
@@ -9625,6 +9673,7 @@ function calcObjectSpacing(){
     const spacing = (L - LG - RG - N*W) / (N-1);
     $('os-out-spacing').textContent = toLabel(spacing, osUnit);
     osRenderDiagram(L, N, LG, W, spacing);
+    osRenderObjectSelect();
 
   } else if(type === 'space'){
     const Sraw = parseLengthInput($('os-spacing').value, osUnit);
@@ -9638,6 +9687,7 @@ function calcObjectSpacing(){
     $('os-out-lgap').textContent = toLabel(gap, osUnit);
     $('os-out-rgap').textContent = toLabel(gap, osUnit);
     osRenderDiagram(L, N, gap, W, S);
+    osRenderObjectSelect();
 
   } else if(type === 'varspace'){
     const Sraw = parseLengthInput($('os-approxspace').value, osUnit);
@@ -9650,6 +9700,7 @@ function calcObjectSpacing(){
     $('os-vs-numrows').textContent = N;
     $('os-vs-adjspace').textContent = toLabel(adjSpace, osUnit);
     osRenderDiagram(L, N, 0, W, adjSpace);
+    osRenderObjectSelect();
 
   } else if(type === 'varobject'){
     const Sraw = parseLengthInput($('os-desiredspace').value, osUnit);
@@ -9662,6 +9713,7 @@ function calcObjectSpacing(){
     $('os-vo-numrows').textContent = N;
     $('os-vo-adjwidth').textContent = toLabel(adjWidth, osUnit);
     osRenderDiagram(L, N, 0, adjWidth, S);
+    osRenderObjectSelect();
   }
 }
 
@@ -13507,15 +13559,20 @@ bindAll(['sl-rise','sl-run'], ()=>{
   $('sl-deg').textContent = fmt(deg,2) + '°';
 });
 
-bindAll(['st-rise','st-target'], ()=>{
+bindAll(['st-rise','st-target','st-rr-treadwidth'], ()=>{
   const total=parseFloat($('st-rise').value), target=parseFloat($('st-target').value);
-  if(!total||!target){ ['st-count','st-actual','st-tread'].forEach(id=>$(id).textContent='–'); return; }
+  if(!total||!target){ ['st-count','st-actual','st-run'].forEach(id=>$(id).textContent='–'); return; }
   const count = Math.round(total/target);
   const actual = total/count;
-  const tread = 25 - actual; // rule of thumb: riser + tread ≈ 17-18in, using 2R+T=25
   $('st-count').textContent = count + ' risers';
   $('st-actual').textContent = fmt(actual,2) + ' in';
-  $('st-tread').textContent = fmt(tread,2) + ' in';
+
+  const treadWidth = parseFloat($('st-rr-treadwidth').value);
+  if(!treadWidth){ $('st-run').textContent='–'; return; }
+  // a staircase with N risers has N-1 treads -- the top riser lands on
+  // the upper floor itself, which doesn't need its own tread board
+  const run = (count-1)*treadWidth;
+  $('st-run').textContent = fmt(run,2) + ' in';
 });
 
 // ---- Paint & Chemical Mixes: Shellac ----
@@ -16387,6 +16444,51 @@ function cvsRenderDiagram(angleDeg, chord, height, radius){
 ['cvs-var1','cvs-var2'].forEach(id=>$(id).addEventListener('change', calcCurveSolver));
 ['cvs-val1','cvs-val2'].forEach(id=>$(id).addEventListener('input', calcCurveSolver));
 
+// ---- Calculators: Ratio Solver ----
+// Solves value1/value2 = value3/value4 for whichever of the 4 values is
+// missing. If all 4 currently have values (the user is editing one that
+// was previously solved-for), re-solves whichever field has gone the
+// longest without being directly typed into, tracked via rsRecency
+// (oldest first) -- the field just edited by the user is never the one
+// overwritten.
+let rsRecency = ['rs-v1','rs-v2','rs-v3','rs-v4'];
+function rsSolve(editedId){
+  rsRecency = rsRecency.filter(id=>id!==editedId);
+  rsRecency.push(editedId);
+
+  const ids = ['rs-v1','rs-v2','rs-v3','rs-v4'];
+  const raw = {};
+  ids.forEach(id=>{ raw[id] = $(id).value.trim(); });
+  const emptyIds = ids.filter(id=>raw[id]==='');
+
+  let target;
+  if(emptyIds.length === 1) target = emptyIds[0];
+  else if(emptyIds.length === 0) target = rsRecency[0];
+  else return; // 2+ blank fields -- not enough info to solve yet
+
+  const vals = {};
+  let ok = true;
+  ids.forEach(id=>{
+    if(id===target) return;
+    const v = parseFloat(raw[id]);
+    if(!isFinite(v)) ok = false;
+    vals[id] = v;
+  });
+  if(!ok) return;
+
+  let result;
+  if(target==='rs-v1') result = (vals['rs-v2']*vals['rs-v3'])/vals['rs-v4'];
+  else if(target==='rs-v2') result = (vals['rs-v1']*vals['rs-v4'])/vals['rs-v3'];
+  else if(target==='rs-v3') result = (vals['rs-v1']*vals['rs-v4'])/vals['rs-v2'];
+  else if(target==='rs-v4') result = (vals['rs-v2']*vals['rs-v3'])/vals['rs-v1'];
+
+  $(target).value = isFinite(result) ? (Math.round(result*10000)/10000).toString() : '';
+}
+['rs-v1','rs-v2','rs-v3','rs-v4'].forEach(id=>{
+  $(id).addEventListener('input', ()=>rsSolve(id));
+});
+rsSolve('rs-v1'); // establish the initial solved value on load
+
 // ---- Layouts: Rectangular Pattern ----
 let hpatUnit = 'decimal';
 const HPAT_STAG_FRACTION = { none:0, half:0.5, third:1/3, quarter:0.25 };
@@ -17306,6 +17408,99 @@ $('sceil-save-btn').addEventListener('click', ()=>{
 });
 
 sceilLoadSaves();
+
+// ---- App-wide: remember every card's input values across sessions ----
+// Rather than wiring up save/load individually for every field in every
+// card (this app has dozens of cards with hundreds of fields), this scans
+// every input/select with an id, saves its value whenever it changes, and
+// restores everything the next time the app is opened -- so a person's
+// in-progress numbers are still there, not just their explicitly-saved
+// layouts. A short list of transient fields (the "add new X" and
+// "save as" name boxes) is excluded, since restoring a stale, unsubmitted
+// name into those would be more confusing than helpful.
+const SA_FIELD_CACHE_KEY = 'sa-field-values';
+const SA_NO_PERSIST_IDS = new Set([
+  'bsp-new-kerf','bsp-new-name','chm-new-name','chm-new-notes','chm-new-ozgal',
+  'db-new-name','db-new-offset','dc-new-name','dc-new-offset',
+  'fd-newcat-name','fd-newitem-height','fd-newitem-length','fd-newitem-name','fd-newitem-seat','fd-newitem-width',
+  'rs-new-size','wst-new-brand','wst-new-stainname',
+]);
+function saShouldPersist(el){
+  if(!el.id) return false;
+  if(SA_NO_PERSIST_IDS.has(el.id)) return false;
+  if(el.id.endsWith('-save-name') || el.id.endsWith('-filename')) return false;
+  if(el.type==='button' || el.type==='submit' || el.type==='file' || el.type==='color') return false;
+  return true;
+}
+function saCollectFieldValues(){
+  const values = {};
+  document.querySelectorAll('input[id], select[id], textarea[id]').forEach(el=>{
+    if(!saShouldPersist(el)) return;
+    if(el.type==='checkbox' || el.type==='radio') values[el.id] = { c: el.checked };
+    else values[el.id] = { v: el.value };
+  });
+  return values;
+}
+let saSaveTimer = null;
+function saScheduleSave(){
+  clearTimeout(saSaveTimer);
+  saSaveTimer = setTimeout(async ()=>{
+    try{ await persist.set(SA_FIELD_CACHE_KEY, JSON.stringify(saCollectFieldValues()), false); }
+    catch(e){ /* best effort -- a failed autosave shouldn't interrupt the user */ }
+  }, 400);
+}
+document.addEventListener('input', e=>{ if(saShouldPersist(e.target)) saScheduleSave(); });
+document.addEventListener('change', e=>{ if(saShouldPersist(e.target)) saScheduleSave(); });
+
+async function saRestoreFieldValues(){
+  let saved;
+  try{
+    const res = await persist.get(SA_FIELD_CACHE_KEY, false);
+    saved = JSON.parse(res.value);
+  }catch(e){ return; } // nothing saved yet (first run) -- leave the built-in defaults as-is
+
+  // Pass 1: set every field's raw value/checked state directly, without
+  // firing events yet, in DOM order. Non-select fields resolve
+  // immediately; selects with options populated by another card's own
+  // (possibly async) startup logic are deferred to pass 3 below.
+  const restoredIds = [];
+  document.querySelectorAll('input[id], select[id], textarea[id]').forEach(el=>{
+    const entry = saved[el.id];
+    if(!entry || !saShouldPersist(el)) return;
+    if(el.tagName === 'SELECT') return;
+    if(el.type==='checkbox' || el.type==='radio') el.checked = !!entry.c;
+    else el.value = entry.v;
+    restoredIds.push(el.id);
+  });
+
+  // Pass 2: now that every plain field holds its restored value, fire
+  // input/change on each so dependent calculations and derived fields
+  // (e.g. a disabled/computed field driven by a checkbox restored above)
+  // recompute correctly from the fully-restored state, not a half-restored
+  // one.
+  restoredIds.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.dispatchEvent(new Event('input', { bubbles:true }));
+    el.dispatchEvent(new Event('change', { bubbles:true }));
+  });
+
+  // Pass 3: selects. Given a short delay so any card's own async startup
+  // (loading a saved database into a dropdown's options) has a chance to
+  // finish first -- only restore a selection if that value still exists
+  // as an option, to avoid selecting something invalid.
+  await new Promise(r=>setTimeout(r, 400));
+  document.querySelectorAll('select[id]').forEach(el=>{
+    const entry = saved[el.id];
+    if(!entry || !saShouldPersist(el)) return;
+    const exists = [...el.options].some(o=>o.value===entry.v);
+    if(exists){
+      el.value = entry.v;
+      el.dispatchEvent(new Event('change', { bubbles:true }));
+    }
+  });
+}
+saRestoreFieldValues();
 </script>
 </body>
 </html>
