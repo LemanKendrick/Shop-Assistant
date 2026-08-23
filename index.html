@@ -4171,7 +4171,7 @@
         <h3>Help</h3>
         <p class="desc">Shop Assistant is a field-reference tool for woodshop and construction calculations and layouts. The full help guide below covers every tab and calculator in the app.</p>
         <p class="desc" style="margin-top:8px;">If the PDF doesn't display below (some mobile browsers don't support inline PDF viewing), use the link to open it directly.</p>
-        <p style="margin-top:10px;"><a href="help.pdf" target="_blank" class="link-btn">Open Help PDF in New Tab ↗</a></p>
+        <p style="margin-top:10px;"><a href="help.pdf" target="_blank" id="help-pdf-link" class="link-btn">Open Help PDF in New Tab ↗</a></p>
         <iframe src="help.pdf" title="Shop Assistant Help" style="width:100%;height:600px;border:1px solid var(--line);border-radius:2px;margin-top:14px;background:#fff;"></iframe>
       </div>
 
@@ -17408,6 +17408,28 @@ $('sceil-save-btn').addEventListener('click', ()=>{
 });
 
 sceilLoadSaves();
+
+// ---- Help PDF: on Android, try opening directly in Acrobat Reader ----
+// Android's Chrome supports a special intent:// URL that can request a
+// specific app handle a link, with a fallback URL if that app isn't
+// installed or the request fails for any reason. This is only attempted
+// on Android -- desktop and iOS keep the plain PDF link unchanged, since
+// intent:// is an Android-Chrome-specific scheme that other platforms
+// don't understand. This is an experimental improvement, not a
+// guaranteed one: if it doesn't work as expected, the fallback URL keeps
+// the PDF opening normally, same as before this was added.
+if(/Android/i.test(navigator.userAgent)){
+  const helpLink = document.getElementById('help-pdf-link');
+  if(helpLink){
+    helpLink.addEventListener('click', e=>{
+      e.preventDefault();
+      const absoluteUrl = new URL('help.pdf', window.location.href).href;
+      const withoutScheme = absoluteUrl.replace(/^https?:\/\//, '');
+      const intentUrl = 'intent://' + withoutScheme + '#Intent;scheme=https;package=com.adobe.reader;action=android.intent.action.VIEW;type=application/pdf;S.browser_fallback_url=' + encodeURIComponent(absoluteUrl) + ';end';
+      window.location.href = intentUrl;
+    });
+  }
+}
 
 // ---- App-wide: remember every card's input values across sessions ----
 // Rather than wiring up save/load individually for every field in every
