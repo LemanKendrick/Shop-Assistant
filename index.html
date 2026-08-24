@@ -2535,6 +2535,7 @@
           <div class="line"><span>Area</span><b class="hi" id="sq-area">–</b></div>
           <div class="line"><span>Perimeter</span><b id="sq-perim">–</b></div>
         </div>
+        <button type="button" class="link-btn" id="sq-print-btn">Print / Save as PDF</button>
 
         <label>Building Materials</label>
         <select id="sq-material"></select>
@@ -2680,6 +2681,7 @@
           <div class="line"><span>Exact quantity needed</span><b id="wl-exact">–</b></div>
           <div class="line"><span>Recommended purchase</span><b class="hi" id="wl-buy">–</b></div>
         </div>
+        <button type="button" class="link-btn" id="wl-print-btn">Print / Save as PDF</button>
 
         <div class="section-divider">Saved Walls</div>
         <div class="shim-row shim-row-new">
@@ -2915,6 +2917,7 @@
           <div class="line"><span>Cross tee length</span><b id="sceil-crosstee">–</b></div>
         </div>
         <div class="note" id="sceil-irregular-note" style="display:none;"></div>
+        <button type="button" class="link-btn" id="sceil-print-btn">Print / Save as PDF</button>
 
         <div class="section-divider">Saved Layouts</div>
         <div class="shim-row shim-row-new">
@@ -4206,22 +4209,52 @@
 // repeatedly throwing "save failed" errors.
 const persist = (function(){
   const mem = {};
-  let mode;
-  if(window.storage && typeof window.storage.get === 'function'){
-    mode = 'window.storage';
-  } else {
-    mode = 'memory';
-    try{
-      const t = '__persist_probe__';
-      localStorage.setItem(t, '1');
-      localStorage.removeItem(t);
-      mode = 'localStorage';
-    }catch(e){ /* localStorage unavailable/blocked here; stay on memory */ }
+  let mode = null; // resolved lazily on first use, once, and cached
+  let modeReady = null;
+
+  async function detectMode(){
+    if(mode !== null) return mode;
+    if(modeReady) return modeReady;
+
+    modeReady = (async () => {
+      // Only trust window.storage if a real round-trip succeeds. Just
+      // checking that window.storage.get/set exist as functions isn't
+      // enough -- something in the hosting environment could expose an
+      // object at window.storage that merely looks compatible without
+      // actually working, which would otherwise make every single save
+      // in the app fail silently (or noisily, as repeated console
+      // warnings) instead of falling back to localStorage like it should.
+      if(window.storage && typeof window.storage.get==='function' && typeof window.storage.set==='function'){
+        try{
+          const probeKey = '__persist_probe__';
+          await window.storage.set(probeKey, '1', false);
+          const res = await window.storage.get(probeKey, false);
+          if(res && res.value==='1'){
+            mode = 'window.storage';
+            console.log('Shop Assistant: using window.storage for saved data.');
+            return mode;
+          }
+        }catch(e){ /* falls through to the localStorage probe below */ }
+      }
+      try{
+        const t = '__persist_probe__';
+        localStorage.setItem(t, '1');
+        localStorage.removeItem(t);
+        mode = 'localStorage';
+      }catch(e){
+        mode = 'memory';
+      }
+      console.log('Shop Assistant: using', mode, 'for saved data.');
+      return mode;
+    })();
+
+    return modeReady;
   }
-  console.log('Shop Assistant: using', mode, 'for saved data.');
+
   return {
     async get(key, shared){
-      if(mode==='window.storage'){
+      const m = await detectMode();
+      if(m==='window.storage'){
         try{
           const res = await window.storage.get(key, shared);
           mem[key] = res.value;
@@ -4233,7 +4266,7 @@ const persist = (function(){
           throw e;
         }
       }
-      if(mode==='localStorage'){
+      if(m==='localStorage'){
         try{
           const raw = localStorage.getItem(key);
           if(raw===null) throw new Error('not found');
@@ -4249,7 +4282,8 @@ const persist = (function(){
     },
     async set(key, value, shared){
       mem[key] = value; // keep this session correct regardless of storage-layer outcome
-      if(mode==='window.storage'){
+      const m = await detectMode();
+      if(m==='window.storage'){
         const maxAttempts = 3;
         let lastErr;
         for(let attempt=1; attempt<=maxAttempts; attempt++){
@@ -4263,7 +4297,7 @@ const persist = (function(){
         console.warn('Shop Assistant: "'+key+'" could not be saved to cloud storage right now (kept for this session, will retry on next save):', lastErr && lastErr.message);
         return { key, value, shared: !!shared, _localOnly:true };
       }
-      if(mode==='localStorage'){
+      if(m==='localStorage'){
         try{ localStorage.setItem(key, value); }
         catch(e){ console.warn('Shop Assistant: "'+key+'" could not be saved to this browser\'s local storage (kept for this session only):', e && e.message); }
         return { key, value, shared: !!shared };
@@ -4272,14 +4306,15 @@ const persist = (function(){
     },
     async list(prefix, shared){
       prefix = prefix || '';
-      if(mode==='window.storage'){
+      const m = await detectMode();
+      if(m==='window.storage'){
         try{
           return await window.storage.list(prefix, shared);
         }catch(e){
           return { keys: Object.keys(mem).filter(k=>k.startsWith(prefix)) };
         }
       }
-      if(mode==='localStorage'){
+      if(m==='localStorage'){
         try{
           return { keys: Object.keys(localStorage).filter(k=>k.startsWith(prefix)) };
         }catch(e){
@@ -13000,6 +13035,78 @@ function calcWalls(){
   $('wl-buy').textContent = Math.ceil(exact) + ' ' + mat.unit;
 }
 
+function wlPrintLayout(){
+  if(wlTotalLength() <= 0){
+    $('wl-status').innerHTML = '<b style="color:var(--orange)">Trace at least one wall segment first</b> before printing.';
+    return;
+  }
+
+  // Reads the already-computed, already-formatted values straight from
+  // their result elements rather than recomputing here, so the printed
+  // numbers can never drift from what's actually shown on screen --
+  // several of these (area, gross/net, material) only appear once the
+  // shape is closed and/or a height is entered, and "-" is exactly what's
+  // already displayed when they're not yet available.
+  const totalLen = $('wl-totallen').textContent;
+  const area = $('wl-area').textContent;
+  const gross = $('wl-gross').textContent;
+  const net = $('wl-net').textContent;
+  const exactQty = $('wl-exact').textContent;
+  const buyQty = $('wl-buy').textContent;
+  const heightVal = $('wl-height').value ? ($('wl-height').value + ' ' + SHAPE_UNIT_LABEL[wlUnit]) : '–';
+  const voidsVal = $('wl-voids').value || '0';
+  const matLabel = $('wl-material').options[$('wl-material').selectedIndex].text;
+
+  const rowsHtml = wlSegments.map((seg,i)=>
+    '<tr><td style="' + LP_TD_ROW + '">' + (i+1) + '</td><td style="' + LP_TD_ROW + '">' + wlDirLabel[seg.dir] + '</td><td style="' + LP_TD_ROW + '">' + fmt(shapeFromFeet(seg.dist,wlUnit),2) + ' ' + SHAPE_UNIT_LABEL[wlUnit] + '</td></tr>'
+  ).join('');
+
+  const plainTextLines = [];
+  plainTextLines.push('WALL SHAPE');
+  plainTextLines.push('Generated by Shop Assistant — ' + new Date().toLocaleString());
+  plainTextLines.push('');
+  plainTextLines.push('RESULTS');
+  plainTextLines.push('Total wall length: ' + totalLen);
+  plainTextLines.push('Enclosed floor area: ' + area);
+  plainTextLines.push('Wall height: ' + heightVal);
+  plainTextLines.push('Voids: ' + voidsVal + ' sq ft');
+  plainTextLines.push('Gross wall area: ' + gross);
+  plainTextLines.push('Net wall area: ' + net);
+  plainTextLines.push('Material: ' + matLabel);
+  plainTextLines.push('Exact quantity needed: ' + exactQty);
+  plainTextLines.push('Recommended purchase: ' + buyQty);
+  plainTextLines.push('');
+  plainTextLines.push('TRACED WALLS');
+  wlSegments.forEach((seg,i)=>{
+    plainTextLines.push((i+1) + ' - ' + wlDirLabel[seg.dir] + ' - ' + fmt(shapeFromFeet(seg.dist,wlUnit),2) + ' ' + SHAPE_UNIT_LABEL[wlUnit]);
+  });
+  const plainText = plainTextLines.join('\n');
+
+  const contentHtml = `
+    ${lpTitle('Wall Shape')}
+    ${lpSectionHeading('Results')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      <tr><td style="${LP_TD_LABEL}">Total wall length</td><td style="${LP_TD_VALUE}">${totalLen}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Enclosed floor area</td><td style="${LP_TD_VALUE}">${area}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Wall height</td><td style="${LP_TD_VALUE}">${heightVal}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Voids</td><td style="${LP_TD_VALUE}">${voidsVal} sq ft</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Gross wall area</td><td style="${LP_TD_VALUE}">${gross}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Net wall area</td><td style="${LP_TD_VALUE}">${net}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Material</td><td style="${LP_TD_VALUE}">${matLabel}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Exact quantity needed</td><td style="${LP_TD_VALUE}">${exactQty}</td></tr>
+      <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Recommended purchase</td><td style="padding:4px 8px;font-size:13px;color:#111;">${buyQty}</td></tr>
+    </table>
+    ${lpDiagramSnippet('wl-diagram')}
+    ${lpSectionHeading('Traced Walls')}
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><th style="${LP_TH}">Wall</th><th style="${LP_TH}">Direction</th><th style="${LP_TH}">Distance</th></tr>
+      ${rowsHtml}
+    </table>
+  `;
+
+  layoutShowPrintOverlay(contentHtml, plainText);
+}
+
 ['wl-height','wl-voids','wl-material','wl-waste'].forEach(id=>{
   $(id).addEventListener('input', calcWalls);
   $(id).addEventListener('change', calcWalls);
@@ -13093,6 +13200,8 @@ function wlRenderSavedList(){
     list.appendChild(row);
   });
 }
+
+$('wl-print-btn').addEventListener('click', wlPrintLayout);
 
 $('wl-save-btn').addEventListener('click', ()=>{
   const nameEl = $('wl-save-name');
@@ -13281,6 +13390,57 @@ function sqRenderDiagram(){
 
 function sqUpdateFilenameDisplay(){
   $('sq-filename').innerHTML = 'File: <b>' + (sqCurrentFileName ? pfEscapeHtml(sqCurrentFileName) : 'Not Saved') + '</b>';
+}
+
+function sqPrintLayout(){
+  const geo = sqPolygonGeometry();
+  if(!geo){
+    // Uses the card's existing status line rather than alert() -- some
+    // viewing contexts this app runs in are known to block/suppress
+    // browser popup APIs (window.open() has hit this before), which would
+    // make a blocked alert() look exactly like "the button does nothing."
+    // A regular in-page message is guaranteed to actually be visible.
+    $('sq-status').innerHTML = '<b style="color:var(--orange)">Close the shape first</b> — the outline needs to form a closed loop before it can be printed.';
+    return;
+  }
+
+  const areaLabel = fmt(shapeAreaFromSqFt(geo.area,sqUnit),1) + ' ' + SHAPE_AREA_UNIT_LABEL[sqUnit];
+  const perimLabel = fmt(shapeFromFeet(geo.perim,sqUnit),1) + ' ' + SHAPE_UNIT_LABEL[sqUnit];
+
+  const rowsHtml = sqSegments.map((seg,i)=>
+    '<tr><td style="' + LP_TD_ROW + '">' + (i+1) + '</td><td style="' + LP_TD_ROW + '">' + sqDirLabel[seg.dir] + '</td><td style="' + LP_TD_ROW + '">' + fmt(shapeFromFeet(seg.dist,sqUnit),2) + ' ' + SHAPE_UNIT_LABEL[sqUnit] + '</td></tr>'
+  ).join('');
+
+  const plainTextLines = [];
+  plainTextLines.push('FOOTPRINT SHAPE');
+  plainTextLines.push('Generated by Shop Assistant — ' + new Date().toLocaleString());
+  plainTextLines.push('');
+  plainTextLines.push('RESULTS');
+  plainTextLines.push('Area: ' + areaLabel);
+  plainTextLines.push('Perimeter: ' + perimLabel);
+  plainTextLines.push('');
+  plainTextLines.push('TRACED WALLS');
+  sqSegments.forEach((seg,i)=>{
+    plainTextLines.push((i+1) + ' - ' + sqDirLabel[seg.dir] + ' - ' + fmt(shapeFromFeet(seg.dist,sqUnit),2) + ' ' + SHAPE_UNIT_LABEL[sqUnit]);
+  });
+  const plainText = plainTextLines.join('\n');
+
+  const contentHtml = `
+    ${lpTitle('Footprint Shape')}
+    ${lpSectionHeading('Results')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      <tr><td style="${LP_TD_LABEL}">Area</td><td style="${LP_TD_VALUE}">${areaLabel}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Perimeter</td><td style="${LP_TD_VALUE}">${perimLabel}</td></tr>
+    </table>
+    ${lpDiagramSnippet('sq-diagram')}
+    ${lpSectionHeading('Traced Walls')}
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><th style="${LP_TH}">Wall</th><th style="${LP_TH}">Direction</th><th style="${LP_TH}">Distance</th></tr>
+      ${rowsHtml}
+    </table>
+  `;
+
+  layoutShowPrintOverlay(contentHtml, plainText);
 }
 
 function sqRender(){
@@ -13533,6 +13693,8 @@ function sqRenderSavedList(){
     list.appendChild(row);
   });
 }
+
+$('sq-print-btn').addEventListener('click', sqPrintLayout);
 
 $('sq-save-btn').addEventListener('click', ()=>{
   const nameEl = $('sq-save-name');
@@ -17254,6 +17416,94 @@ function sceilUpdateFilenameDisplay(){
   $('sceil-filename').innerHTML = 'File: <b>' + (sceilCurrentFileName ? pfEscapeHtml(sceilCurrentFileName) : 'Not Saved') + '</b>';
 }
 
+function sceilPrintLayout(){
+  if(!sceilIsClosed()){
+    $('sceil-status').innerHTML = '<b style="color:var(--orange)">Close the shape first</b> — the outline needs to form a closed loop before it can be printed.';
+    return;
+  }
+  const panelLength = parseFloat($('sceil-panellength').value);
+  const panelWidth = parseFloat($('sceil-panelwidth').value);
+  if(!isFinite(panelLength) || panelLength<=0 || !isFinite(panelWidth) || panelWidth<=0){
+    $('sceil-status').innerHTML = '<b style="color:var(--orange)">Enter panel length and width</b> before printing.';
+    return;
+  }
+
+  // Reads the already-computed, already-formatted values straight from
+  // their result elements, so the printed numbers can never drift from
+  // what's actually shown on screen.
+  const area = $('sceil-area').textContent;
+  const numRows = $('sceil-numrows').textContent;
+  const numCols = $('sceil-numcols').textContent;
+  const colGap = $('sceil-panelendgap').textContent;
+  const rowGap = $('sceil-rowendgap').textContent;
+  const numPanels = $('sceil-numpanels').textContent;
+  const trimLen = $('sceil-trimlength').textContent;
+  const mainBeam = $('sceil-mainbeam').textContent;
+  const crossTee = $('sceil-crosstee').textContent;
+  const orientLabel = $('sceil-orient').options[$('sceil-orient').selectedIndex].text;
+  const unitLabel = SHAPE_UNIT_LABEL[sceilUnit];
+
+  const rowsHtml = sceilSegments.map((seg,i)=>
+    '<tr><td style="' + LP_TD_ROW + '">' + (i+1) + '</td><td style="' + LP_TD_ROW + '">' + sceilDirLabel[seg.dir] + '</td><td style="' + LP_TD_ROW + '">' + fmt(shapeFromFeet(seg.dist,sceilUnit),2) + ' ' + unitLabel + '</td></tr>'
+  ).join('');
+
+  const plainTextLines = [];
+  plainTextLines.push('SUSPENDED CEILING');
+  plainTextLines.push('Generated by Shop Assistant — ' + new Date().toLocaleString());
+  plainTextLines.push('');
+  plainTextLines.push('PANEL LAYOUT');
+  plainTextLines.push('Panel length: ' + panelLength + ' ' + unitLabel);
+  plainTextLines.push('Panel width: ' + panelWidth + ' ' + unitLabel);
+  plainTextLines.push('Orientation: ' + orientLabel);
+  plainTextLines.push('');
+  plainTextLines.push('RESULTS');
+  plainTextLines.push('Outline area: ' + area);
+  plainTextLines.push('Number of rows: ' + numRows);
+  plainTextLines.push('Number of columns: ' + numCols);
+  plainTextLines.push('Column row gap (each end): ' + colGap);
+  plainTextLines.push('Row end gap (each end): ' + rowGap);
+  plainTextLines.push('Number of panels: ' + numPanels);
+  plainTextLines.push('Perimeter trim length: ' + trimLen);
+  plainTextLines.push('Main beam length: ' + mainBeam);
+  plainTextLines.push('Cross tee length: ' + crossTee);
+  plainTextLines.push('');
+  plainTextLines.push('TRACED WALLS');
+  sceilSegments.forEach((seg,i)=>{
+    plainTextLines.push((i+1) + ' - ' + sceilDirLabel[seg.dir] + ' - ' + fmt(shapeFromFeet(seg.dist,sceilUnit),2) + ' ' + unitLabel);
+  });
+  const plainText = plainTextLines.join('\n');
+
+  const contentHtml = `
+    ${lpTitle('Suspended Ceiling')}
+    ${lpSectionHeading('Panel Layout')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      <tr><td style="${LP_TD_LABEL}">Panel length</td><td style="${LP_TD_VALUE}">${panelLength} ${unitLabel}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Panel width</td><td style="${LP_TD_VALUE}">${panelWidth} ${unitLabel}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Orientation</td><td style="${LP_TD_VALUE}">${orientLabel}</td></tr>
+    </table>
+    ${lpSectionHeading('Results')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      <tr><td style="${LP_TD_LABEL}">Outline area</td><td style="${LP_TD_VALUE}">${area}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Number of rows</td><td style="${LP_TD_VALUE}">${numRows}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Number of columns</td><td style="${LP_TD_VALUE}">${numCols}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Column row gap (each end)</td><td style="${LP_TD_VALUE}">${colGap}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Row end gap (each end)</td><td style="${LP_TD_VALUE}">${rowGap}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Number of panels</td><td style="${LP_TD_VALUE}">${numPanels}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Perimeter trim length</td><td style="${LP_TD_VALUE}">${trimLen}</td></tr>
+      <tr><td style="${LP_TD_LABEL}">Main beam length</td><td style="${LP_TD_VALUE}">${mainBeam}</td></tr>
+      <tr><td style="padding:4px 8px;font-size:13px;color:#555;">Cross tee length</td><td style="padding:4px 8px;font-size:13px;color:#111;">${crossTee}</td></tr>
+    </table>
+    ${lpDiagramSnippet('sceil-diagram')}
+    ${lpSectionHeading('Traced Walls')}
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><th style="${LP_TH}">Wall</th><th style="${LP_TH}">Direction</th><th style="${LP_TH}">Distance</th></tr>
+      ${rowsHtml}
+    </table>
+  `;
+
+  layoutShowPrintOverlay(contentHtml, plainText);
+}
+
 function sceilRender(){
   sceilRenderSegmentList();
   sceilUpdateFilenameDisplay();
@@ -17394,6 +17644,8 @@ function sceilRenderSavedList(){
     list.appendChild(row);
   });
 }
+
+$('sceil-print-btn').addEventListener('click', sceilPrintLayout);
 
 $('sceil-save-btn').addEventListener('click', ()=>{
   const nameEl = $('sceil-save-name');
