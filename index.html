@@ -15,8 +15,15 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Shop Assistant">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<!-- Fonts: intentionally NOT loaded from Google Fonts (or any CDN) so this
+     app works 100% offline once downloaded. Every font-family declaration
+     throughout this file already lists 'sans-serif' or 'monospace' as a
+     fallback, so removing the web-font link simply makes every one of
+     those fall back gracefully to the device's own system fonts -- no
+     other changes needed. If a device happens to have Oswald, IBM Plex
+     Sans, or IBM Plex Mono installed locally for some other reason, it
+     will still be used automatically; otherwise the system default takes
+     over seamlessly. -->
 <style>
   :root{
     --asphalt:#1B1D1E;
@@ -2494,7 +2501,7 @@
     <div class="grid">
 
       <div class="card">
-        <h3>Footprint Shape</h3>
+        <h3>Footprint Layout</h3>
         <p class="desc">Trace the space's outline: enter a distance, then tap the direction you walked along that wall. Keep going until the outline closes back on the starting point — the area and perimeter appear automatically.</p>
 
         <div class="unit-toggle" id="sq-unit-toggle">
@@ -2616,8 +2623,8 @@
       </div>
 
       <div class="card">
-        <h3>Wall Shape</h3>
-        <p class="desc">Trace the wall run the same way as Footprint Shape: enter a distance, then tap the direction. Total wall length is the sum of every leg whether or not you close the loop — but closing it (or tapping "Close shape") also shades the outline and shows the enclosed floor area.</p>
+        <h3>Wall Layout</h3>
+        <p class="desc">Trace the wall run the same way as Footprint Layout: enter a distance, then tap the direction. Total wall length is the sum of every leg whether or not you close the loop — but closing it (or tapping "Close shape") also shades the outline and shows the enclosed floor area.</p>
 
         <div class="unit-toggle" id="wl-unit-toggle">
           <button type="button" data-unit="ft" class="active">Feet</button>
@@ -2858,7 +2865,7 @@
 
       <div class="card">
         <h3>Suspended Ceiling</h3>
-        <p class="desc">Trace the space's outline like Footprint Shape: enter a distance, then tap the direction you walked along that wall. Insets and offsets are supported naturally — the panel grid adjusts using the traced shape's bounding box.</p>
+        <p class="desc">Trace the space's outline like Footprint Layout: enter a distance, then tap the direction you walked along that wall. Insets and offsets are supported naturally — the panel grid adjusts using the traced shape's bounding box.</p>
 
         <div class="unit-toggle" id="sceil-unit-toggle">
           <button type="button" data-unit="ft" class="active">Feet</button>
@@ -4664,7 +4671,7 @@ const fmt = (n, d=2) => isFinite(n) ? n.toLocaleString(undefined,{maximumFractio
 const deg = r => r * (180/Math.PI);
 const rad = d => d * (Math.PI/180);
 
-// shared unit system for Space Shape / Wall Shape — all traced segments and
+// shared unit system for Footprint Layout / Wall Layout — all traced segments and
 // areas are stored canonically in feet / sq ft (material coverage rates are
 // fixed in sq ft), and only converted for entry and display
 const SHAPE_UNIT_TO_FEET = { ft: 1, in: 1/12, m: 3.280839895 };
@@ -13083,7 +13090,7 @@ function wlPrintLayout(){
   const plainText = plainTextLines.join('\n');
 
   const contentHtml = `
-    ${lpTitle('Wall Shape')}
+    ${lpTitle('Wall Layout')}
     ${lpSectionHeading('Results')}
     <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
       <tr><td style="${LP_TD_LABEL}">Total wall length</td><td style="${LP_TD_VALUE}">${totalLen}</td></tr>
@@ -13426,7 +13433,7 @@ function sqPrintLayout(){
   const plainText = plainTextLines.join('\n');
 
   const contentHtml = `
-    ${lpTitle('Footprint Shape')}
+    ${lpTitle('Footprint Layout')}
     ${lpSectionHeading('Results')}
     <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
       <tr><td style="${LP_TD_LABEL}">Area</td><td style="${LP_TD_VALUE}">${areaLabel}</td></tr>
@@ -17066,7 +17073,7 @@ function calcClshmShims(){
   $(id).addEventListener('input', calcClshmShims);
 });
 
-// ---- Tool Adjustment: Suspended Ceiling (shape tracer, modeled on Footprint Shape) ----
+// ---- Tool Adjustment: Suspended Ceiling (shape tracer, modeled on Footprint Layout) ----
 let sceilSegments = []; // { dir, dist } — dist stored in canonical feet
 let sceilUnit = 'ft';
 let sceilCurrentFileName = null; // name of the loaded/saved file, or null for "Not Saved"
