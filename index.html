@@ -1898,6 +1898,30 @@
     <div class="grid">
 
       <div class="card">
+        <h3>Center Object</h3>
+        <p class="desc">Find the tape measure readings for centering an object within a space, running from a fixed tape start point.</p>
+
+        <div class="unit-toggle" id="co-unit-toggle">
+          <button type="button" data-unit="decimal" class="active">Decimal in</button>
+          <button type="button" data-unit="fraction">Fractional in</button>
+          <button type="button" data-unit="mm">Millimeters</button>
+        </div>
+
+        <div class="row">
+          <div><label id="co-length-label">Length (in)</label><input type="text" id="co-length" inputmode="decimal" placeholder="e.g. 96"></div>
+          <div><label id="co-width-label">Object width (in)</label><input type="text" id="co-width" inputmode="decimal" placeholder="e.g. 24"></div>
+        </div>
+        <label id="co-tapestart-label">Tape start (in)</label>
+        <input type="text" id="co-tapestart" inputmode="decimal" placeholder="e.g. 0" value="0">
+
+        <div class="result">
+          <div class="line"><span>Left Tape</span><b id="co-lefttape">–</b></div>
+          <div class="line"><span>Center Tape</span><b class="hi" id="co-centertape">–</b></div>
+          <div class="line"><span>Right Tape</span><b id="co-righttape">–</b></div>
+        </div>
+      </div>
+
+      <div class="card">
         <h3>Object Spacing</h3>
         <p class="desc">Lay out a row of evenly-spaced objects — balusters, pickets, tiles, shelf pins — across a fixed space.</p>
 
@@ -9534,6 +9558,61 @@ function sq345Calc(){
 bindAll(['sq-a','sq-b','sq-tapestart'], sq345Calc);
 sq345UpdateLabels();
 
+// ---- Center Object ----
+
+let coUnit = 'decimal';
+const CO_LENGTH_FIELDS = ['co-length','co-width','co-tapestart'];
+const CO_LABEL_TEXT = {
+  'co-length-label':'Length', 'co-width-label':'Object width', 'co-tapestart-label':'Tape start'
+};
+
+function coUpdateLabels(){
+  const suffix = ' (' + unitAbbrev(coUnit) + ')';
+  Object.entries(CO_LABEL_TEXT).forEach(([labelId,text])=>{
+    $(labelId).textContent = text + suffix;
+  });
+}
+
+function calcCenterObject(){
+  const length = parseLengthInput($('co-length').value, coUnit);
+  const width = parseLengthInput($('co-width').value, coUnit);
+  const tapeStartRaw = parseLengthInput($('co-tapestart').value, coUnit);
+  const tapeStart = isFinite(tapeStartRaw) ? tapeStartRaw : 0;
+
+  if(!isFinite(length) || length<=0 || !isFinite(width) || width<0){
+    ['co-lefttape','co-centertape','co-righttape'].forEach(id=>$(id).textContent='–');
+    return;
+  }
+
+  const leftTape = tapeStart + (length/2 - width/2);
+  const centerTape = tapeStart + length/2;
+  const rightTape = tapeStart + (length/2 + width/2);
+
+  $('co-lefttape').textContent = toLabel(leftTape, coUnit);
+  $('co-centertape').textContent = toLabel(centerTape, coUnit);
+  $('co-righttape').textContent = toLabel(rightTape, coUnit);
+}
+CO_LENGTH_FIELDS.forEach(id=>$(id).addEventListener('input', calcCenterObject));
+
+document.querySelectorAll('#co-unit-toggle button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const oldUnit = coUnit;
+    const inches = {};
+    CO_LENGTH_FIELDS.forEach(id=>{
+      inches[id] = parseLengthInput($(id).value, oldUnit);
+    });
+    coUnit = btn.dataset.unit;
+    document.querySelectorAll('#co-unit-toggle button').forEach(b=>b.classList.toggle('active', b===btn));
+    CO_LENGTH_FIELDS.forEach(id=>{
+      if(isFinite(inches[id])) $(id).value = toInputValue(inches[id], coUnit);
+    });
+    coUpdateLabels();
+    calcCenterObject();
+  });
+});
+coUpdateLabels();
+calcCenterObject();
+
 // ---- Object Spacing ----
 
 let osUnit = 'decimal';
@@ -9715,8 +9794,26 @@ function calcObjectSpacing(){
 
   if(type === 'rows'){
     const LGraw=parseLengthInput($('os-lgap').value, osUnit), RGraw=parseLengthInput($('os-rgap').value, osUnit), N=parseInt($('os-numrows').value);
-    if(!isFinite(LGraw) || !isFinite(RGraw) || !N || N<2){ clearAll(); return; }
+    if(!isFinite(LGraw) || !isFinite(RGraw) || !N || N<1){ clearAll(); return; }
     const LG=LGraw, RG=RGraw;
+    if(N===1){
+      // With a single object, "spacing between objects" isn't a
+      // meaningful quantity -- there's no adjacent object to measure a
+      // gap to. The object is positioned using the left gap; if left
+      // gap + width + right gap doesn't add up to the full space length,
+      // the diagram's right gap will differ from what was typed in, so
+      // that's called out explicitly rather than left looking like a
+      // silent mismatch.
+      const expectedTotal = LG + W + RG;
+      if(Math.abs(expectedTotal - L) > 0.01){
+        $('os-out-spacing').textContent = 'N/A (only 1 object) — left gap + width + right gap doesn\'t add up to the space length, so the object is placed using the left gap only';
+      } else {
+        $('os-out-spacing').textContent = 'N/A (only 1 object)';
+      }
+      osRenderDiagram(L, N, LG, W, 0);
+      osRenderObjectSelect();
+      return;
+    }
     const spacing = (L - LG - RG - N*W) / (N-1);
     $('os-out-spacing').textContent = toLabel(spacing, osUnit);
     osRenderDiagram(L, N, LG, W, spacing);
@@ -9742,7 +9839,14 @@ function calcObjectSpacing(){
     const Sapprox = Sraw;
     if(W===0 && Sapprox===0){ clearAll(); return; } // nothing to measure a count against
     const N = Math.round((L+Sapprox)/(W+Sapprox));
-    if(N<2){ clearAll(); return; }
+    if(N<1){ clearAll(); return; }
+    if(N===1){
+      $('os-vs-numrows').textContent = N;
+      $('os-vs-adjspace').textContent = 'N/A (only 1 object)';
+      osRenderDiagram(L, N, 0, W, 0);
+      osRenderObjectSelect();
+      return;
+    }
     const adjSpace = (L - N*W) / (N-1);
     $('os-vs-numrows').textContent = N;
     $('os-vs-adjspace').textContent = toLabel(adjSpace, osUnit);
