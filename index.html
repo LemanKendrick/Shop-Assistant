@@ -17695,6 +17695,20 @@ if(/Android/i.test(navigator.userAgent)){
   }
 }
 
+// ---- App-wide: register the service worker for offline/installable support ----
+// Lets the app be "installed" (Add to Home Screen / Install app) with a
+// real offline fallback, not just an icon. Wrapped defensively: if
+// service workers aren't supported, or registration fails for any reason
+// (e.g. viewed via file:// rather than a real https:// host, or as a
+// Claude.ai artifact preview rather than the actual published site),
+// the app simply continues working online as normal -- this must never
+// be able to break anything else.
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{ /* offline support unavailable in this context; app still works fine online */ });
+  });
+}
+
 // ---- App-wide: remember every card's input values across sessions ----
 // Rather than wiring up save/load individually for every field in every
 // card (this app has dozens of cards with hundreds of fields), this scans
