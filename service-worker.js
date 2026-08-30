@@ -9,9 +9,17 @@
 // re-caches) the latest published version; the cache is only used as a
 // fallback when there's genuinely no network available.
 //
-// Bump CACHE_NAME (e.g. 'shop-assistant-v2') any time the list of cached
+// Important: fetch() alone isn't enough to guarantee freshness. Without
+// {cache:'no-store'}, the browser's own standard HTTP cache sits BELOW the
+// service worker and can silently satisfy a "network" fetch from disk if
+// GitHub Pages sends caching headers on index.html -- meaning an update
+// could still fail to show up even though this code correctly tried the
+// network first. {cache:'no-store'} forces a genuinely fresh request from
+// the server every time there's a connection.
+//
+// Bump CACHE_NAME (e.g. 'shop-assistant-v3') any time the list of cached
 // files changes, so old caches get cleaned up on the next activate.
-const CACHE_NAME = 'shop-assistant-v1';
+const CACHE_NAME = 'shop-assistant-v2';
 const CACHED_URLS = ['./', './index.html', './help.pdf'];
 
 self.addEventListener('install', event => {
@@ -36,10 +44,11 @@ self.addEventListener('fetch', event => {
   if(event.request.method !== 'GET') return;
 
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: 'no-store' })
       .then(response => {
-        // Got a fresh copy from the network -- use it, and update the
-        // cache so the offline fallback stays as current as possible.
+        // Got a genuinely fresh copy from the network -- use it, and
+        // update the offline-fallback cache so it stays as current as
+        // possible.
         const copy = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
         return response;
