@@ -1006,19 +1006,9 @@
   <!-- SAW CUTS -->
   <section class="panel active" id="saw">
 
-    <div class="subtabs">
-      <button class="active" data-sub="board-split">Board Split</button>
-      <button data-sub="dubby">Dubby Sled Offcut</button>
-      <button data-sub="dado">Dado Cut</button>
-      <button data-sub="unequal-miter">Unequal Board Miter</button>
-      <button data-sub="crown">Crown Molding</button>
-      <button data-sub="polygon">Polygon Cuts</button>
-      <button data-sub="diagonal">Diagonal Slats</button>
-    </div>
+    <div class="grid">
 
-    <div class="subpanel-wrap">
-
-      <div class="subpanel active card" id="board-split">
+      <div class="card" id="board-split">
         <h3>Board Split</h3>
         <p class="desc">Rip a board into equal-width strips, accounting for blade kerf loss on each cut.</p>
 
@@ -1057,7 +1047,7 @@
         </div>
       </div>
 
-      <div class="subpanel card" id="dubby">
+      <div class="card" id="dubby">
         <h3>Fence Setting</h3>
         <p class="desc">Add your jig's built-in offset to a length to get the number you actually dial in on the fence.</p>
 
@@ -1096,7 +1086,7 @@
         </div>
       </div>
 
-      <div class="subpanel card" id="dado">
+      <div class="card" id="dado">
         <h3>Dado Cut</h3>
         <p class="desc">Fence setting for a dado stack that's narrower than the dado you need — sneak up on it in one offset pass.</p>
 
@@ -1131,7 +1121,7 @@
         <div class="note">Fence setting = (Desired dado width − Dado stack width) + Jig offset.</div>
       </div>
 
-      <div class="subpanel card" id="unequal-miter">
+      <div class="card" id="unequal-miter">
         <h3>Unequal Board Miter</h3>
         <p class="desc">Two boards of different width meeting at a corner need different miter angles so the joint line stays straight — not a plain 45/45 split.</p>
 
@@ -1160,7 +1150,7 @@
         <div class="note">The two angles always add up to the corner angle. Equal widths return a standard 45°/45° split on a 90° corner.</div>
       </div>
 
-      <div class="subpanel card" id="crown">
+      <div class="card" id="crown">
         <h3>Crown Molding</h3>
         <p class="desc">Compound miter and bevel for crown cut flat on the table, upside-down against the fence.</p>
 
@@ -1211,7 +1201,7 @@
         <div class="note" id="cr-note">Common spring angles: 38° (38/52 profile) or 45° (45/45 profile). Adjust corner angle for out-of-square walls.</div>
       </div>
 
-      <div class="subpanel card" id="polygon">
+      <div class="card" id="polygon">
         <h3>Polygon Cuts</h3>
         <p class="desc">Miter angle for each side of a regular polygon frame, planter, or base.</p>
 
@@ -1250,7 +1240,7 @@
         <div class="note">Cut each board to the outer (long-point) length above — that's the edge you mark and gauge from on the saw.</div>
       </div>
 
-      <div class="subpanel card" id="diagonal">
+      <div class="card" id="diagonal">
         <h3>Diagonal Slats</h3>
         <p class="desc">End-cut angle and spacing for slats running at an angle across a panel.</p>
 
@@ -4420,6 +4410,7 @@ setupCardSummary('misc', 'Calculators');
 setupCardSummary('tooladj', 'Tool Adjustment');
 setupCardSummary('data', 'Data & Information');
 setupCardSummary('paint', 'Paint & Chemical Mixes');
+setupCardSummary('saw', 'Saw Cuts');
 
 const $ = id => document.getElementById(id);
 
