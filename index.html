@@ -96,25 +96,30 @@
   }
 
   nav.tabs{
-    display:flex;
-    gap:2px;
-    border-bottom:2px solid var(--line);
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(280px,1fr));
+    gap:10px;
     margin-bottom:28px;
-    flex-wrap:wrap;
   }
   nav.tabs button{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:var(--surface-raised);
+    border:1px solid var(--line);
+    border-left:3px solid var(--orange-dim);
+    border-radius:2px;
+    padding:14px 16px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  nav.tabs button .cm-title{
     font-family:'Oswald',sans-serif;
     font-weight:600;
     text-transform:uppercase;
-    letter-spacing:.05em;
-    font-size:14px;
-    background:transparent;
-    border:none;
+    letter-spacing:.03em;
+    font-size:15px;
     color:var(--concrete);
-    padding:12px 18px;
-    cursor:pointer;
-    position:relative;
-    transition:color .15s ease;
   }
   nav.tabs button .num{
     font-family:'IBM Plex Mono',monospace;
@@ -122,16 +127,21 @@
     color:var(--orange-dim);
     margin-right:8px;
   }
-  nav.tabs button:hover{color:var(--chalk);}
-  nav.tabs button.active{color:var(--chalk);}
-  nav.tabs button.active .num{color:var(--orange);}
-  nav.tabs button.active::after{
-    content:'';
-    position:absolute;
-    left:0;right:0;bottom:-2px;
-    height:3px;
-    background:var(--orange);
+  nav.tabs button .cm-desc{
+    margin-top:4px;
+    font-size:12px;
+    color:var(--concrete);
+    line-height:1.4;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
   }
+  nav.tabs button:hover{ background:var(--surface); border-color:var(--concrete); border-left-color:var(--orange); }
+  nav.tabs button:hover .cm-title{ color:var(--chalk); }
+  nav.tabs button.active{ background:var(--surface); border-left-color:var(--orange); border-left-width:4px; }
+  nav.tabs button.active .cm-title{ color:var(--chalk); }
+  nav.tabs button.active .num{ color:var(--orange); }
 
   section.panel{display:none;}
   section.panel.active{display:block;animation:fade .25s ease;}
@@ -949,7 +959,9 @@
   }
 
   @media (max-width:520px){
-    nav.tabs button{padding:10px 10px;font-size:12.5px;}
+    nav.tabs button{padding:10px 12px;}
+    nav.tabs button .cm-title{font-size:13.5px;}
+    nav.tabs button .cm-desc{font-size:11px;}
   }
 </style>
 </head>
@@ -992,15 +1004,15 @@
   </div>
 
   <nav class="tabs">
-    <button class="active" data-tab="saw"><span class="num">01</span>Saw Cuts</button>
-    <button data-tab="tooladj"><span class="num">02</span>Tool Adjustment</button>
-    <button data-tab="design"><span class="num">03</span>Design</button>
-    <button data-tab="layout"><span class="num">04</span>Layouts</button>
-    <button data-tab="qty"><span class="num">05</span>Quantities</button>
-    <button data-tab="misc"><span class="num">06</span>Calculators</button>
-    <button data-tab="data"><span class="num">07</span>Data &amp; Information</button>
-    <button data-tab="paint"><span class="num">08</span>Paint &amp; Chemical Mixes</button>
-    <button data-tab="colors"><span class="num">09</span>Settings &amp; Help</button>
+    <button class="active" data-tab="saw"><div class="cm-title"><span class="num">01</span>Saw Cuts</div><div class="cm-desc">Setup calculations for common table saw and miter saw operations.</div></button>
+    <button data-tab="tooladj"><div class="cm-title"><span class="num">02</span>Tool Adjustment</div><div class="cm-desc">Calibration and fine-tuning calculators for shop machinery.</div></button>
+    <button data-tab="design"><div class="cm-title"><span class="num">03</span>Design</div><div class="cm-desc">Layout and proportion calculators for furniture and structural design.</div></button>
+    <button data-tab="layout"><div class="cm-title"><span class="num">04</span>Layouts</div><div class="cm-desc">Spacing and positioning calculators for repeating elements.</div></button>
+    <button data-tab="qty"><div class="cm-title"><span class="num">05</span>Quantities</div><div class="cm-desc">Material takeoff calculators for estimating job quantities.</div></button>
+    <button data-tab="misc"><div class="cm-title"><span class="num">06</span>Calculators</div><div class="cm-desc">General-purpose reference calculators used across many projects.</div></button>
+    <button data-tab="data"><div class="cm-title"><span class="num">07</span>Data &amp; Information</div><div class="cm-desc">Reference tables for common hardware and building specifications.</div></button>
+    <button data-tab="paint"><div class="cm-title"><span class="num">08</span>Paint &amp; Chemical Mixes</div><div class="cm-desc">Mixing and dilution calculators for finishes and chemicals.</div></button>
+    <button data-tab="colors"><div class="cm-title"><span class="num">09</span>Settings &amp; Help</div><div class="cm-desc">App-wide settings and this help reference.</div></button>
   </nav>
 
   <!-- SAW CUTS -->
