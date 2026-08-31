@@ -96,30 +96,25 @@
   }
 
   nav.tabs{
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(280px,1fr));
-    gap:10px;
+    display:flex;
+    gap:2px;
+    border-bottom:2px solid var(--line);
     margin-bottom:28px;
+    flex-wrap:wrap;
   }
   nav.tabs button{
-    display:block;
-    width:100%;
-    text-align:left;
-    background:var(--surface-raised);
-    border:1px solid var(--line);
-    border-left:3px solid var(--orange-dim);
-    border-radius:2px;
-    padding:14px 16px;
-    cursor:pointer;
-    transition:border-color .15s ease, background .15s ease;
-  }
-  nav.tabs button .cm-title{
     font-family:'Oswald',sans-serif;
     font-weight:600;
     text-transform:uppercase;
-    letter-spacing:.03em;
-    font-size:15px;
+    letter-spacing:.05em;
+    font-size:14px;
+    background:transparent;
+    border:none;
     color:var(--concrete);
+    padding:12px 18px;
+    cursor:pointer;
+    position:relative;
+    transition:color .15s ease;
   }
   nav.tabs button .num{
     font-family:'IBM Plex Mono',monospace;
@@ -127,21 +122,16 @@
     color:var(--orange-dim);
     margin-right:8px;
   }
-  nav.tabs button .cm-desc{
-    margin-top:4px;
-    font-size:12px;
-    color:var(--concrete);
-    line-height:1.4;
-    display:-webkit-box;
-    -webkit-line-clamp:2;
-    -webkit-box-orient:vertical;
-    overflow:hidden;
+  nav.tabs button:hover{color:var(--chalk);}
+  nav.tabs button.active{color:var(--chalk);}
+  nav.tabs button.active .num{color:var(--orange);}
+  nav.tabs button.active::after{
+    content:'';
+    position:absolute;
+    left:0;right:0;bottom:-2px;
+    height:3px;
+    background:var(--orange);
   }
-  nav.tabs button:hover{ background:var(--surface); border-color:var(--concrete); border-left-color:var(--orange); }
-  nav.tabs button:hover .cm-title{ color:var(--chalk); }
-  nav.tabs button.active{ background:var(--surface); border-left-color:var(--orange); border-left-width:4px; }
-  nav.tabs button.active .cm-title{ color:var(--chalk); }
-  nav.tabs button.active .num{ color:var(--orange); }
 
   section.panel{display:none;}
   section.panel.active{display:block;animation:fade .25s ease;}
@@ -959,9 +949,7 @@
   }
 
   @media (max-width:520px){
-    nav.tabs button{padding:10px 12px;}
-    nav.tabs button .cm-title{font-size:13.5px;}
-    nav.tabs button .cm-desc{font-size:11px;}
+    nav.tabs button{padding:10px 10px;font-size:12.5px;}
   }
 </style>
 </head>
@@ -1004,15 +992,15 @@
   </div>
 
   <nav class="tabs">
-    <button class="active" data-tab="saw"><div class="cm-title"><span class="num">01</span>Saw Cuts</div><div class="cm-desc">Setup calculations for common table saw and miter saw operations.</div></button>
-    <button data-tab="tooladj"><div class="cm-title"><span class="num">02</span>Tool Adjustment</div><div class="cm-desc">Calibration and fine-tuning calculators for shop machinery.</div></button>
-    <button data-tab="design"><div class="cm-title"><span class="num">03</span>Design</div><div class="cm-desc">Layout and proportion calculators for furniture and structural design.</div></button>
-    <button data-tab="layout"><div class="cm-title"><span class="num">04</span>Layouts</div><div class="cm-desc">Spacing and positioning calculators for repeating elements.</div></button>
-    <button data-tab="qty"><div class="cm-title"><span class="num">05</span>Quantities</div><div class="cm-desc">Material takeoff calculators for estimating job quantities.</div></button>
-    <button data-tab="misc"><div class="cm-title"><span class="num">06</span>Calculators</div><div class="cm-desc">General-purpose reference calculators used across many projects.</div></button>
-    <button data-tab="data"><div class="cm-title"><span class="num">07</span>Data &amp; Information</div><div class="cm-desc">Reference tables for common hardware and building specifications.</div></button>
-    <button data-tab="paint"><div class="cm-title"><span class="num">08</span>Paint &amp; Chemical Mixes</div><div class="cm-desc">Mixing and dilution calculators for finishes and chemicals.</div></button>
-    <button data-tab="colors"><div class="cm-title"><span class="num">09</span>Settings &amp; Help</div><div class="cm-desc">App-wide settings and this help reference.</div></button>
+    <button class="active" data-tab="saw"><span class="num">01</span>Saw Cuts</button>
+    <button data-tab="tooladj"><span class="num">02</span>Tool Adjustment</button>
+    <button data-tab="design"><span class="num">03</span>Design</button>
+    <button data-tab="layout"><span class="num">04</span>Layouts</button>
+    <button data-tab="qty"><span class="num">05</span>Quantities</button>
+    <button data-tab="misc"><span class="num">06</span>Calculators</button>
+    <button data-tab="data"><span class="num">07</span>Data &amp; Information</button>
+    <button data-tab="paint"><span class="num">08</span>Paint &amp; Chemical Mixes</button>
+    <button data-tab="colors"><span class="num">09</span>Settings &amp; Help</button>
   </nav>
 
   <!-- SAW CUTS -->
@@ -3384,72 +3372,10 @@
         <div class="result">
           <div class="line"><span>Slope ratio</span><b class="hi" id="slp-ratio">–</b></div>
           <div class="line"><span>Slope incline</span><b class="hi" id="slp-inclineresult">–</b></div>
+          <div class="line"><span>% Grade</span><b id="slp-pct">–</b></div>
         </div>
         <div class="diagram-wrap">
           <div id="slp-diagram"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Wrench Selection</h3>
-        <p class="desc">Find the closest equal-or-next-larger wrench size between S.A.E. and metric sets. Selecting one auto-selects its match in the other.</p>
-        <div class="row">
-          <div><label>S.A.E.</label>
-            <select id="wr-sae">
-              <option value="0.125">1/8"</option>
-              <option value="0.1875">3/16"</option>
-              <option value="0.25">1/4"</option>
-              <option value="0.3125">5/16"</option>
-              <option value="0.34375">11/32"</option>
-              <option value="0.375">3/8"</option>
-              <option value="0.4375">7/16"</option>
-              <option value="0.5">1/2"</option>
-              <option value="0.5625">9/16"</option>
-              <option value="0.59375">19/32"</option>
-              <option value="0.625">5/8"</option>
-              <option value="0.65625">21/32"</option>
-              <option value="0.6875">11/16"</option>
-              <option value="0.75">3/4"</option>
-              <option value="0.8125">13/16"</option>
-              <option value="0.875">7/8"</option>
-              <option value="0.9375">15/16"</option>
-              <option value="1">1"</option>
-            </select>
-          </div>
-          <div><label>Millimeters</label>
-            <select id="wr-mm">
-              <option value="4">4 mm</option>
-              <option value="5">5 mm</option>
-              <option value="7">7 mm</option>
-              <option value="8">8 mm</option>
-              <option value="9">9 mm</option>
-              <option value="10">10 mm</option>
-              <option value="12">12 mm</option>
-              <option value="13">13 mm</option>
-              <option value="15">15 mm</option>
-              <option value="16">16 mm</option>
-              <option value="17">17 mm</option>
-              <option value="18">18 mm</option>
-              <option value="20">20 mm</option>
-              <option value="21">21 mm</option>
-              <option value="23">23 mm</option>
-              <option value="24">24 mm</option>
-              <option value="26">26 mm</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Slope / Grade</h3>
-        <p class="desc">Convert rise and run into slope percentage and angle.</p>
-        <div class="row">
-          <div><label>Rise (in)</label><input type="number" id="sl-rise" value="3" step="0.25"></div>
-          <div><label>Run (ft)</label><input type="number" id="sl-run" value="10" step="1"></div>
-        </div>
-        <div class="result">
-          <div class="line"><span>Slope</span><b class="hi" id="sl-pct">–</b></div>
-          <div class="line"><span>Angle</span><b id="sl-deg">–</b></div>
         </div>
       </div>
 
@@ -3617,6 +3543,56 @@
   <!-- DATA & INFORMATION -->
   <section class="panel" id="data">
     <div class="grid">
+
+      <div class="card">
+        <h3>Wrench Selection</h3>
+        <p class="desc">Find the closest equal-or-next-larger wrench size between S.A.E. and metric sets. Selecting one auto-selects its match in the other.</p>
+        <div class="row">
+          <div><label>S.A.E.</label>
+            <select id="wr-sae">
+              <option value="0.125">1/8"</option>
+              <option value="0.1875">3/16"</option>
+              <option value="0.25">1/4"</option>
+              <option value="0.3125">5/16"</option>
+              <option value="0.34375">11/32"</option>
+              <option value="0.375">3/8"</option>
+              <option value="0.4375">7/16"</option>
+              <option value="0.5">1/2"</option>
+              <option value="0.5625">9/16"</option>
+              <option value="0.59375">19/32"</option>
+              <option value="0.625">5/8"</option>
+              <option value="0.65625">21/32"</option>
+              <option value="0.6875">11/16"</option>
+              <option value="0.75">3/4"</option>
+              <option value="0.8125">13/16"</option>
+              <option value="0.875">7/8"</option>
+              <option value="0.9375">15/16"</option>
+              <option value="1">1"</option>
+            </select>
+          </div>
+          <div><label>Millimeters</label>
+            <select id="wr-mm">
+              <option value="4">4 mm</option>
+              <option value="5">5 mm</option>
+              <option value="7">7 mm</option>
+              <option value="8">8 mm</option>
+              <option value="9">9 mm</option>
+              <option value="10">10 mm</option>
+              <option value="12">12 mm</option>
+              <option value="13">13 mm</option>
+              <option value="15">15 mm</option>
+              <option value="16">16 mm</option>
+              <option value="17">17 mm</option>
+              <option value="18">18 mm</option>
+              <option value="20">20 mm</option>
+              <option value="21">21 mm</option>
+              <option value="23">23 mm</option>
+              <option value="24">24 mm</option>
+              <option value="26">26 mm</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
       <div class="card">
         <h3>Wood Screws</h3>
@@ -13830,16 +13806,6 @@ $('sq-save-btn').addEventListener('click', ()=>{
 sqLoadSaves();
 
 // ---- MISC ----
-bindAll(['sl-rise','sl-run'], ()=>{
-  const rise=parseFloat($('sl-rise').value), run=parseFloat($('sl-run').value);
-  if(!rise||!run){ $('sl-pct').textContent='–'; $('sl-deg').textContent='–'; return; }
-  const riseFt = rise/12;
-  const pct = (riseFt/run)*100;
-  const deg = Math.atan(riseFt/run) * (180/Math.PI);
-  $('sl-pct').textContent = fmt(pct,2) + ' %';
-  $('sl-deg').textContent = fmt(deg,2) + '°';
-});
-
 bindAll(['st-rise','st-target','st-rr-treadwidth'], ()=>{
   const total=parseFloat($('st-rise').value), target=parseFloat($('st-target').value);
   if(!total||!target){ ['st-count','st-actual','st-run'].forEach(id=>$(id).textContent='–'); return; }
@@ -15627,16 +15593,18 @@ function calcSlopes(){
   const run = parseFloat($('slp-run').value);
 
   if(!rise || !run){
-    $('slp-ratio').textContent='–'; $('slp-inclineresult').textContent='–';
+    $('slp-ratio').textContent='–'; $('slp-inclineresult').textContent='–'; $('slp-pct').textContent='–';
     $('slp-diagram').innerHTML = '';
     return;
   }
 
   const ratioX = (rise/run)*12;
   const inclineDeg = Math.atan(rise/run)*(180/Math.PI);
+  const pctGrade = (rise/run)*100;
 
   $('slp-ratio').textContent = fmt(ratioX,3) + ':12';
   $('slp-inclineresult').textContent = fmt(inclineDeg,3) + '°';
+  $('slp-pct').textContent = fmt(pctGrade,2) + ' %';
   $('slp-incline').value = fmt(inclineDeg,3);
 
   slpRenderDiagram(rise, run, inclineDeg);
@@ -15649,7 +15617,7 @@ function calcSlopes(){
 function calcSlopesFromIncline(){
   const inclineDeg = parseFloat($('slp-incline').value);
   if(!isFinite(inclineDeg)){
-    $('slp-ratio').textContent='–'; $('slp-inclineresult').textContent='–';
+    $('slp-ratio').textContent='–'; $('slp-inclineresult').textContent='–'; $('slp-pct').textContent='–';
     $('slp-diagram').innerHTML = '';
     return;
   }
@@ -15660,8 +15628,10 @@ function calcSlopesFromIncline(){
   $('slp-rise').value = fmt(rise,3);
 
   const ratioX = (rise/run)*12;
+  const pctGrade = (rise/run)*100;
   $('slp-ratio').textContent = fmt(ratioX,3) + ':12';
   $('slp-inclineresult').textContent = fmt(inclineDeg,3) + '°';
+  $('slp-pct').textContent = fmt(pctGrade,2) + ' %';
 
   slpRenderDiagram(rise, run, inclineDeg);
 }
