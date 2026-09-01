@@ -2614,6 +2614,17 @@
             <div><label>Thickness (in)</label><input type="number" id="sq-cm-f-thick" step="0.5" placeholder="e.g. 8"></div>
             <div><label>Width (in)</label><input type="number" id="sq-cm-f-width" step="0.5" placeholder="e.g. 16"></div>
           </div>
+          <div class="row">
+            <div><label>Rebar runs</label><input type="number" id="sq-cm-f-rebarruns" step="1" min="0" value="2" placeholder="e.g. 2"></div>
+            <div><label>Rebar size</label>
+              <select id="sq-cm-f-rebarsize">
+                <option value="3">#3 (3/8")</option>
+                <option value="4" selected>#4 (1/2")</option>
+                <option value="5">#5 (5/8")</option>
+                <option value="6">#6 (3/4")</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div class="result" id="sq-cm-result-generic">
@@ -2626,6 +2637,13 @@
           <div class="line"><span>Base — recommended purchase</span><b class="hi" id="sq-cm-a-base-buy">–</b></div>
           <div class="line"><span>Surface — exact</span><b id="sq-cm-a-surf-exact">–</b></div>
           <div class="line"><span>Surface — recommended purchase</span><b class="hi" id="sq-cm-a-surf-buy">–</b></div>
+        </div>
+
+        <div class="result" id="sq-cm-result-footers" style="display:none">
+          <div class="line"><span>Concrete — exact</span><b id="sq-cm-f-exact">–</b></div>
+          <div class="line"><span>Concrete — recommended purchase</span><b class="hi" id="sq-cm-f-buy">–</b></div>
+          <div class="line"><span>Rebar length needed</span><b id="sq-cm-f-rebar-exact">–</b></div>
+          <div class="line"><span>Rebar — recommended purchase</span><b class="hi" id="sq-cm-f-rebar-buy">–</b></div>
         </div>
 
         <div class="section-divider">Saved Shapes</div>
@@ -13679,20 +13697,25 @@ sqConstrTypeSelect.addEventListener('change', ()=>{
   calcSpaceQty();
 });
 ['sq-cm-a-depth','sq-cm-a-density','sq-cm-a-sdepth','sq-cm-a-sdensity','sq-cm-c-thick','sq-cm-g-depth','sq-cm-g-density',
- 'sq-cm-m-depth','sq-cm-m-cf','sq-cm-f-thick','sq-cm-f-width'].forEach(id=>{
+ 'sq-cm-m-depth','sq-cm-m-cf','sq-cm-f-thick','sq-cm-f-width','sq-cm-f-rebarruns','sq-cm-f-rebarsize'].forEach(id=>{
   $(id).addEventListener('input', calcSpaceQty);
+  $(id).addEventListener('change', calcSpaceQty);
 });
 
 function calcConstructionMaterial(geo){
   const type = sqConstrTypeSelect.value;
   const showAsphalt = (type === 'asphalt');
+  const showFooters = (type === 'footers');
   $('sq-cm-result-asphalt').style.display = showAsphalt ? '' : 'none';
-  $('sq-cm-result-generic').style.display = showAsphalt ? 'none' : '';
+  $('sq-cm-result-footers').style.display = showFooters ? '' : 'none';
+  $('sq-cm-result-generic').style.display = (showAsphalt || showFooters) ? 'none' : '';
 
   if(!geo){
     $('sq-cm-exact').textContent = '–'; $('sq-cm-buy').textContent = '–';
     $('sq-cm-a-base-exact').textContent = '–'; $('sq-cm-a-base-buy').textContent = '–';
     $('sq-cm-a-surf-exact').textContent = '–'; $('sq-cm-a-surf-buy').textContent = '–';
+    $('sq-cm-f-exact').textContent = '–'; $('sq-cm-f-buy').textContent = '–';
+    $('sq-cm-f-rebar-exact').textContent = '–'; $('sq-cm-f-rebar-buy').textContent = '–';
     return;
   }
 
@@ -13741,11 +13764,34 @@ function calcConstructionMaterial(geo){
     buy = Math.ceil(exact);
   } else if(type === 'footers'){
     const thick=parseFloat($('sq-cm-f-thick').value), width=parseFloat($('sq-cm-f-width').value);
-    if(!thick || !width || !isFinite(geo.perim)){ $('sq-cm-exact').textContent='–'; $('sq-cm-buy').textContent='–'; return; }
+    if(!thick || !width || !isFinite(geo.perim)){
+      $('sq-cm-f-exact').textContent='–'; $('sq-cm-f-buy').textContent='–';
+      $('sq-cm-f-rebar-exact').textContent='–'; $('sq-cm-f-rebar-buy').textContent='–';
+      return;
+    }
     const volCf = geo.perim * (width/12) * (thick/12);
-    exact = volCf/27;
-    unit = 'cu yd';
-    buy = Math.ceil(exact*4)/4;
+    const concreteExact = volCf/27;
+    const concreteBuy = Math.ceil(concreteExact*4)/4;
+    $('sq-cm-f-exact').textContent = fmt(concreteExact,2) + ' cu yd';
+    $('sq-cm-f-buy').textContent = fmt(concreteBuy,2) + ' cu yd';
+
+    // Rebar: a given number of continuous bars run the full footing
+    // perimeter -- a simplified planning estimate (2 runs is typical for
+    // residential footings, more for wider/heavier-loaded ones). Assumes
+    // standard 20 ft stock lengths when rounding up to sticks; actual
+    // requirements depend on local code and engineering.
+    const rebarRuns = parseFloat($('sq-cm-f-rebarruns').value);
+    const rebarSize = $('sq-cm-f-rebarsize').value;
+    if(rebarRuns>0){
+      const REBAR_STICK_FT = 20;
+      const totalLengthFt = geo.perim * rebarRuns;
+      const sticksNeeded = Math.ceil(totalLengthFt / REBAR_STICK_FT);
+      $('sq-cm-f-rebar-exact').textContent = fmt(totalLengthFt,1) + ' ft of #' + rebarSize + ' rebar';
+      $('sq-cm-f-rebar-buy').textContent = sticksNeeded + ' × 20 ft sticks of #' + rebarSize;
+    } else {
+      $('sq-cm-f-rebar-exact').textContent = '–'; $('sq-cm-f-rebar-buy').textContent = '–';
+    }
+    return;
   } else {
     $('sq-cm-exact').textContent = '–'; $('sq-cm-buy').textContent = '–';
     return;
