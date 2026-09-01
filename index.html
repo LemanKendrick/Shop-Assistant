@@ -3537,6 +3537,73 @@
         </div>
       </div>
 
+      <div class="card">
+        <h3>Lighting Calculator</h3>
+        <p class="desc">Estimate how many fixtures a room needs, or check what fixtures you already have will deliver. Uses a simplified lumen method — a practical planning estimate, not a photometric-grade layout.</p>
+
+        <label>Mode</label>
+        <div class="unit-toggle" id="lt-mode-toggle">
+          <button type="button" data-mode="forward" class="active">Fixtures needed</button>
+          <button type="button" data-mode="reverse">Check my fixtures</button>
+        </div>
+
+        <div class="row">
+          <div><label>Room length (ft)</label><input type="number" id="lt-length" step="0.5" min="0" value="20"></div>
+          <div><label>Room width (ft)</label><input type="number" id="lt-width" step="0.5" min="0" value="24"></div>
+        </div>
+
+        <label>Wall &amp; ceiling tone</label>
+        <select id="lt-reflect">
+          <option value="light">Light (white / light gray)</option>
+          <option value="medium" selected>Medium (typical shop)</option>
+          <option value="dark">Dark (wood, dark paint)</option>
+        </select>
+
+        <div id="lt-fc-group">
+          <label>Target light level (footcandles)</label>
+          <input type="number" id="lt-fc" step="5" min="0" value="75">
+          <div class="unit-toggle" id="lt-fc-toggle" style="flex-wrap:wrap;row-gap:6px;margin-top:8px;">
+            <button type="button" data-fc="30">Storage (30 fc)</button>
+            <button type="button" data-fc="50">General shop (50 fc)</button>
+            <button type="button" data-fc="75" class="active">Bench work (75 fc)</button>
+            <button type="button" data-fc="100">Fine detail (100 fc)</button>
+            <button type="button" data-fc="150">Inspection (150 fc)</button>
+          </div>
+        </div>
+
+        <div id="lt-qty-group" style="display:none;">
+          <label>Number of fixtures you have</label>
+          <input type="number" id="lt-qty" step="1" min="0" value="6">
+        </div>
+
+        <label>Fixture output (lumens per fixture)</label>
+        <input type="number" id="lt-lumens" step="100" min="0" value="4500">
+        <div class="unit-toggle" id="lt-lumens-toggle" style="flex-wrap:wrap;row-gap:6px;margin-top:8px;">
+          <button type="button" data-lm="2000">2' LED (~2000 lm)</button>
+          <button type="button" data-lm="4500" class="active">4' LED shop light (~4500 lm)</button>
+          <button type="button" data-lm="8000">8' / 2-lamp LED (~8000 lm)</button>
+        </div>
+
+        <label>Light loss factor (dust, aging, dirt)</label>
+        <input type="number" id="lt-llf" step="0.05" min="0.1" max="1" value="0.8">
+
+        <div class="alert-banner" id="lt-alert" style="display:none;"></div>
+
+        <div class="result">
+          <div class="line"><span id="lt-headline-label">Fixtures needed</span><b class="hi big" id="lt-headline">–</b></div>
+          <div class="line"><span>Room area</span><b id="lt-area">–</b></div>
+          <div class="line"><span>Coefficient of utilization (est.)</span><b id="lt-cu">–</b></div>
+          <div class="line"><span>Suggested layout</span><b id="lt-layout">–</b></div>
+          <div class="line"><span>Approx. fixture spacing</span><b id="lt-spacing">–</b></div>
+          <div class="line" id="lt-fcresult-row"><span>Resulting light level</span><b id="lt-fcresult">–</b></div>
+          <div class="line"><span>Rating</span><b class="hi" id="lt-rating">–</b></div>
+        </div>
+        <div class="diagram-wrap">
+          <div id="lt-diagram"></div>
+        </div>
+        <div class="note">Coefficient of utilization is a simplified estimate by room size and surface tone, not a full zonal-cavity calculation. Actual light levels vary with fixture beam angle, mounting height, obstructions, and true surface reflectance.</div>
+      </div>
+
     </div>
   </section>
 
@@ -16739,6 +16806,192 @@ function rsSolve(editedId){
   $(id).addEventListener('input', ()=>rsSolve(id));
 });
 rsSolve('rs-v1'); // establish the initial solved value on load
+
+// ---- Calculators: Lighting Calculator ----
+// Simplified lumen method: fixtures needed = (area x target footcandles) /
+// (coefficient of utilization x light loss factor x lumens per fixture).
+// The coefficient of utilization (CU) is a rough lookup by room size and
+// surface tone rather than a full zonal-cavity calculation -- good enough
+// for shop planning, not a substitute for a photometric layout.
+let ltMode = 'forward';
+
+function ltCuLookup(area, reflect){
+  let table;
+  if(area < 200) table = { light:0.85, medium:0.75, dark:0.65 };
+  else if(area < 600) table = { light:0.80, medium:0.70, dark:0.60 };
+  else table = { light:0.75, medium:0.65, dark:0.55 };
+  return table[reflect] || table.medium;
+}
+
+function ltBestGrid(count, length, width){
+  if(!(count>0)) return { rows:0, cols:0 };
+  const aspect = length/width;
+  let cols = Math.max(1, Math.round(Math.sqrt(count*aspect)));
+  let rows = Math.ceil(count/cols);
+  return { rows, cols };
+}
+
+function ltRate(fc){
+  if(fc < 40) return 'Under-lit for shop work';
+  if(fc < 60) return 'OK for general work / storage';
+  if(fc < 90) return 'Good for bench work';
+  if(fc < 130) return 'Great for fine detail';
+  return 'Very bright / inspection grade';
+}
+
+function ltRenderDiagram(grid, length, width, fixtureCount){
+  const box = $('lt-diagram');
+  if(!grid.rows || !grid.cols){ box.innerHTML=''; return; }
+
+  const svgW = 640, pad = 40;
+  const availW = svgW - pad*2;
+  const aspect = width/length;
+  let svgH = Math.round(availW*aspect) + pad*2;
+  svgH = Math.max(160, Math.min(360, svgH));
+  const availH = svgH - pad*2;
+
+  const label = `<text x="${pad+availW/2}" y="${pad-14}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--concrete)">Room: ${fmt(length,1)} ft × ${fmt(width,1)} ft — top-down view</text>`;
+  const room = `<rect x="${pad}" y="${pad}" width="${availW}" height="${availH}" fill="none" stroke="var(--concrete)" stroke-width="1" stroke-dasharray="4 3"/>`;
+
+  // grid.rows/cols is a rectangular bounding shape sized to FIT at least
+  // fixtureCount dots -- it doesn't divide evenly in general (e.g. 17
+  // fixtures becomes a 5x4=20-cell shape), so the draw loop stops once it
+  // has placed exactly fixtureCount dots rather than filling every cell,
+  // otherwise the diagram would show more fixtures than actually needed.
+  let dots = '';
+  let placed = 0;
+  for(let r=0; r<grid.rows && placed<fixtureCount; r++){
+    for(let c=0; c<grid.cols && placed<fixtureCount; c++){
+      const cx = pad + (availW*(c+0.5))/grid.cols;
+      const cy = pad + (availH*(r+0.5))/grid.rows;
+      dots += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="7" fill="var(--orange)"/>`;
+      placed++;
+    }
+  }
+
+  box.innerHTML = `<svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">${label}${room}${dots}</svg>`;
+}
+
+function ltShowError(msg){
+  const alertEl = $('lt-alert');
+  alertEl.textContent = msg;
+  alertEl.style.display = 'block';
+  ['lt-headline','lt-area','lt-cu','lt-layout','lt-spacing','lt-fcresult','lt-rating'].forEach(id=>{ $(id).textContent='–'; });
+  $('lt-diagram').innerHTML = '';
+}
+
+function ltCalculate(){
+  const alertEl = $('lt-alert');
+  const length = parseFloat($('lt-length').value);
+  const width = parseFloat($('lt-width').value);
+  const reflect = $('lt-reflect').value;
+  const lumens = parseFloat($('lt-lumens').value);
+
+  // Clamp light loss factor into a sane range rather than blocking the
+  // calculation -- this is a tuning value, not a required user entry.
+  let llf = parseFloat($('lt-llf').value);
+  if(!isFinite(llf)) llf = 0.8;
+  llf = Math.min(1, Math.max(0.1, llf));
+
+  if(!(length>0) || !(width>0)){
+    ltShowError('Enter room length and width, both greater than zero.');
+    return;
+  }
+  if(length>1000 || width>1000){
+    ltShowError('Room dimensions look too large — double check you entered feet.');
+    return;
+  }
+  if(!(lumens>0)){
+    ltShowError('Enter fixture output in lumens, greater than zero.');
+    return;
+  }
+
+  const area = length*width;
+  const cu = ltCuLookup(area, reflect);
+  let fixtureCount, actualFc;
+
+  if(ltMode==='forward'){
+    const targetFc = parseFloat($('lt-fc').value);
+    if(!(targetFc>0)){
+      ltShowError('Enter a target footcandle level greater than zero.');
+      return;
+    }
+    if(targetFc>500){
+      ltShowError('That footcandle target looks unusually high — double check the value.');
+      return;
+    }
+    alertEl.style.display = 'none';
+    const totalLumensNeeded = (area*targetFc)/(cu*llf);
+    fixtureCount = Math.max(1, Math.ceil(totalLumensNeeded/lumens));
+    actualFc = (fixtureCount*lumens*cu*llf)/area;
+    $('lt-headline-label').textContent = 'Fixtures needed';
+    $('lt-headline').textContent = fixtureCount;
+    $('lt-fcresult-row').style.display = 'flex';
+    $('lt-fcresult').textContent = fmt(actualFc,0)+' fc';
+  } else {
+    const qty = parseFloat($('lt-qty').value);
+    if(!(qty>=1)){
+      ltShowError('Enter at least 1 fixture.');
+      return;
+    }
+    alertEl.style.display = 'none';
+    fixtureCount = Math.round(qty);
+    actualFc = (fixtureCount*lumens*cu*llf)/area;
+    $('lt-headline-label').textContent = 'Resulting light level';
+    $('lt-headline').textContent = fmt(actualFc,0)+' fc';
+    $('lt-fcresult-row').style.display = 'none';
+  }
+
+  const grid = ltBestGrid(fixtureCount, length, width);
+  $('lt-area').textContent = fmt(area,0)+' sq ft';
+  $('lt-cu').textContent = fmt(cu,2);
+  $('lt-layout').textContent = grid.rows+' × '+grid.cols;
+  $('lt-spacing').textContent = fmt(length/grid.cols,1)+' ft × '+fmt(width/grid.rows,1)+' ft';
+  $('lt-rating').textContent = ltRate(actualFc);
+  ltRenderDiagram(grid, length, width, fixtureCount);
+}
+
+['lt-length','lt-width','lt-reflect','lt-fc','lt-qty','lt-lumens','lt-llf'].forEach(id=>{
+  $(id).addEventListener('input', ltCalculate);
+  $(id).addEventListener('change', ltCalculate);
+});
+
+document.querySelectorAll('#lt-mode-toggle button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#lt-mode-toggle button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    ltMode = btn.dataset.mode;
+    $('lt-fc-group').style.display = ltMode==='forward' ? 'block' : 'none';
+    $('lt-qty-group').style.display = ltMode==='reverse' ? 'block' : 'none';
+    ltCalculate();
+  });
+});
+
+document.querySelectorAll('#lt-fc-toggle button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#lt-fc-toggle button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    $('lt-fc').value = btn.dataset.fc;
+    ltCalculate();
+  });
+});
+$('lt-fc').addEventListener('input', ()=>{
+  document.querySelectorAll('#lt-fc-toggle button').forEach(b=>b.classList.remove('active'));
+});
+
+document.querySelectorAll('#lt-lumens-toggle button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#lt-lumens-toggle button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    $('lt-lumens').value = btn.dataset.lm;
+    ltCalculate();
+  });
+});
+$('lt-lumens').addEventListener('input', ()=>{
+  document.querySelectorAll('#lt-lumens-toggle button').forEach(b=>b.classList.remove('active'));
+});
+
+ltCalculate(); // establish initial result on load
 
 // ---- Layouts: Rectangular Pattern ----
 let hpatUnit = 'decimal';
