@@ -344,6 +344,23 @@
     cursor:pointer;
     flex-shrink:0;
   }
+  .color-picker-row .color-hex-input{
+    width:88px;
+    height:32px;
+    padding:0 8px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    text-transform:uppercase;
+    background:var(--asphalt);
+    color:var(--chalk);
+    border:1px solid var(--line);
+    border-radius:2px;
+    flex-shrink:0;
+  }
+  .color-picker-row .color-hex-input:focus{
+    outline:none;
+    border-color:var(--orange);
+  }
   .preset-swatch{
     display:flex;
     flex-direction:column;
@@ -4717,18 +4734,52 @@ function colorRenderPickers(){
     info.className = 'color-picker-info';
     info.innerHTML = '<div class="color-picker-name">'+v.name+'</div><div class="color-picker-desc">'+v.desc+'</div>';
 
+    const currentHex = colorGetCurrentValue(v.key);
+
     const input = document.createElement('input');
     input.type = 'color';
-    input.value = colorGetCurrentValue(v.key);
-    input.addEventListener('input', async ()=>{
-      document.documentElement.style.setProperty('--'+v.key, input.value);
+    input.value = currentHex;
+
+    const hexInput = document.createElement('input');
+    hexInput.type = 'text';
+    hexInput.className = 'color-hex-input';
+    hexInput.value = currentHex;
+    hexInput.placeholder = '#RRGGBB';
+    hexInput.maxLength = 7;
+    hexInput.setAttribute('inputmode','text');
+    hexInput.spellcheck = false;
+
+    async function applyColor(hex){
+      document.documentElement.style.setProperty('--'+v.key, hex);
       const currentPalette = {};
       COLOR_VARS.forEach(cv => currentPalette[cv.key] = colorGetCurrentValue(cv.key));
       await colorSavePalette(currentPalette);
+    }
+
+    input.addEventListener('input', ()=>{
+      hexInput.value = input.value;
+      applyColor(input.value);
     });
+
+    // Only applies once a full, valid 6-digit hex color has been typed --
+    // while the user is still mid-edit (e.g. "#E85") this deliberately
+    // does nothing rather than trying to apply an incomplete/invalid
+    // color, so typing doesn't fight with an in-progress entry.
+    hexInput.addEventListener('input', ()=>{
+      const raw = hexInput.value.trim();
+      const normalized = raw.startsWith('#') ? raw : '#'+raw;
+      if(/^#[0-9A-Fa-f]{6}$/.test(normalized)){
+        input.value = normalized;
+        applyColor(normalized);
+      }
+    });
+    // On blur, snap the text field back to whatever the swatch actually
+    // holds -- covers a user leaving invalid/partial text behind.
+    hexInput.addEventListener('blur', ()=>{ hexInput.value = input.value; });
 
     row.appendChild(info);
     row.appendChild(input);
+    row.appendChild(hexInput);
     container.appendChild(row);
   });
 }
