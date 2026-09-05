@@ -3551,7 +3551,7 @@
 
       <div class="card">
         <h3>Ratio Solver</h3>
-        <p class="desc">Solve a proportion — enter any 3 of the 4 values and the 4th is computed automatically. Editing any value re-solves whichever value was filled in least recently.</p>
+        <p class="desc">Solve a proportion — enter any 3 of the 4 values and the 4th is computed automatically. Editing a value re-solves its partner on the same side of the equation (Value 1 ↔ Value 2, or Value 3 ↔ Value 4), leaving the opposite side unchanged.</p>
 
         <div style="display:flex;align-items:center;gap:16px;justify-content:center;margin-top:10px;">
           <div style="flex:1;max-width:180px;">
@@ -16860,36 +16860,26 @@ function cvsRenderDiagram(angleDeg, chord, height, radius){
 ['cvs-val1','cvs-val2'].forEach(id=>$(id).addEventListener('input', calcCurveSolver));
 
 // ---- Calculators: Ratio Solver ----
-// Solves value1/value2 = value3/value4 for whichever of the 4 values is
-// missing. If all 4 currently have values (the user is editing one that
-// was previously solved-for), re-solves whichever field has gone the
-// longest without being directly typed into, tracked via rsRecency
-// (oldest first) -- the field just edited by the user is never the one
-// overwritten.
-let rsRecency = ['rs-v1','rs-v2','rs-v3','rs-v4'];
+// Solves value1/value2 = value3/value4. Editing any field always solves
+// its PARTNER on the same side of the equation (v1<->v2, v3<->v4), using
+// the opposite side's two values completely unchanged as the fixed
+// reference ratio. This is simpler and more predictable than solving for
+// "whichever field is stale" -- editing v1 always recomputes v2 from the
+// untouched v3/v4 ratio, never the other way around.
+const RS_PARTNER = { 'rs-v1':'rs-v2', 'rs-v2':'rs-v1', 'rs-v3':'rs-v4', 'rs-v4':'rs-v3' };
 function rsSolve(editedId){
-  rsRecency = rsRecency.filter(id=>id!==editedId);
-  rsRecency.push(editedId);
-
+  const target = RS_PARTNER[editedId];
   const ids = ['rs-v1','rs-v2','rs-v3','rs-v4'];
-  const raw = {};
-  ids.forEach(id=>{ raw[id] = $(id).value.trim(); });
-  const emptyIds = ids.filter(id=>raw[id]==='');
-
-  let target;
-  if(emptyIds.length === 1) target = emptyIds[0];
-  else if(emptyIds.length === 0) target = rsRecency[0];
-  else return; // 2+ blank fields -- not enough info to solve yet
 
   const vals = {};
   let ok = true;
   ids.forEach(id=>{
-    if(id===target) return;
-    const v = parseFloat(raw[id]);
+    if(id===target) return; // this is the one being solved for, not read
+    const v = parseFloat($(id).value.trim());
     if(!isFinite(v)) ok = false;
     vals[id] = v;
   });
-  if(!ok) return;
+  if(!ok) return; // opposite side (or the edited field itself) isn't valid yet
 
   let result;
   if(target==='rs-v1') result = (vals['rs-v2']*vals['rs-v3'])/vals['rs-v4'];
@@ -16902,7 +16892,7 @@ function rsSolve(editedId){
 ['rs-v1','rs-v2','rs-v3','rs-v4'].forEach(id=>{
   $(id).addEventListener('input', ()=>rsSolve(id));
 });
-rsSolve('rs-v1'); // establish the initial solved value on load
+rsSolve('rs-v3'); // establish the initial solved value (v4) on load
 
 // ---- Calculators: Lighting Calculator ----
 // Simplified lumen method: fixtures needed = (area x target footcandles) /
