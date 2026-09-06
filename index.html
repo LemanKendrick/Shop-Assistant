@@ -1654,6 +1654,7 @@
           <div class="line"><span>Remaining space</span><b class="hi" id="dd-remaining">–</b></div>
         </div>
         <div class="alert-banner" id="dd-full-alert" style="display:none;">Space is Full</div>
+        <div class="alert-banner" id="dd-overflow-alert" style="display:none;">Drawers, gaps, and rails add up to more than the opening height — reduce one or more drawer heights to fit the available space.</div>
 
         <div id="dd-post-fill" style="display:none;">
           <div class="section-divider">Rail Placement</div>
@@ -3141,7 +3142,7 @@
 
       <div class="card">
         <h3>Object Clearance</h3>
-        <p class="desc">Checks whether an object can rotate around each axis and still clear the space. X = object width, Y = object depth, Z = object height. Rotating around an axis keeps that dimension fixed while the other two form a diagonal in that plane — clearance requires both that the fixed dimension fits within its matching space dimension, and that the object's diagonal (in that plane) fits within the space's own diagonal (in that same plane), allowing for maneuvering the object diagonally through the available floor area rather than spinning in place.</p>
+        <p class="desc">Checks whether an object can rotate around each axis and still clear the space. X = object width, Y = object depth, Z = object height. Rotating around an axis keeps that dimension fixed while the other two form a diagonal in that plane — clearance requires both that the fixed dimension fits within its matching space dimension, and that the object's diagonal fits within a specific space dimension for that axis: Z-axis diagonal (width-depth) against space width; X-axis diagonal (depth-height) against space height; Y-axis diagonal (width-height) against space height.</p>
         <div class="unit-toggle" id="ocl-unit-toggle">
           <button type="button" data-unit="decimal" class="active">Decimal in</button>
           <button type="button" data-unit="fraction">Fractional in</button>
@@ -3782,7 +3783,10 @@
         </select>
 
         <label>Material thickness</label>
-        <input type="text" id="kreg-thickness" placeholder="">
+        <div class="row" style="align-items:center;">
+          <input type="text" id="kreg-thickness" placeholder="" style="flex:1;">
+          <button type="button" id="kreg-thickness-clear">Clear</button>
+        </div>
 
         <div class="alert-banner" id="kreg-alert" style="display:none;"></div>
       </div>
@@ -7721,7 +7725,15 @@ function ddUpdateSideLapNote(){
 }
 
 function ddEffectiveLap(){
-  return isFinite(ddSideLapIn) ? Math.abs(ddSideLapIn) * (ddFlushMount ? -1 : 1) : 0;
+  // ddSideLapIn itself is forced to 0 whenever flush mount is on (the
+  // side-lap joint doesn't apply to a flush front), so the magnitude
+  // needed here comes from ddSideLapSaved -- the value the field held
+  // just before flush mount zeroed it out.
+  if(ddFlushMount){
+    const saved = parseLengthInput(ddSideLapSaved, ddUnit);
+    return isFinite(saved) ? -Math.abs(saved) : 0;
+  }
+  return isFinite(ddSideLapIn) ? Math.abs(ddSideLapIn) : 0;
 }
 
 function ddUpdateRailDist(){
@@ -7772,13 +7784,13 @@ function calcDrawerBoxDimensions(){
 
 function ddRenderDetailDiagram(botGap, drawerH, topGap, railW, unit){
   const box = $('dd-detail-diagram');
-  const svgW = 640, svgH = 320;
+  const svgW = 640, svgH = 360;
   const colX = 260, colW = 140;
 
   // schematic pixel heights — exaggerated for legibility, not to true scale
   const railPx = 26, gapPx = 20, drawerPx = 150;
   const totalPx = railPx + gapPx + drawerPx + gapPx + railPx;
-  const startY = (svgH - totalPx) / 2;
+  const startY = (svgH - totalPx) / 2 - 20;
 
   const segs = [
     { h: railPx,    fill: 'var(--orange-dim)', stroke: 'var(--orange)', label: 'Rail', value: railW },
@@ -7799,12 +7811,16 @@ function ddRenderDetailDiagram(botGap, drawerH, topGap, railW, unit){
     y += seg.h;
   });
 
-  const caption = `<text x="${svgW/2}" y="${svgH-14}" text-anchor="middle" font-family="Oswald, sans-serif" font-size="12" letter-spacing=".03em" fill="var(--concrete)">DRAWER SPACE DETAIL (SCHEMATIC — NOT TO SCALE)</text>`;
+  const caption = `<text x="${svgW/2}" y="${svgH-40}" text-anchor="middle" font-family="Oswald, sans-serif" font-size="12" letter-spacing=".03em" fill="var(--concrete)">DRAWER SPACE DETAIL (SCHEMATIC — NOT TO SCALE)</text>`;
+  const note = `
+    <text x="${svgW/2}" y="${svgH-20}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" font-style="italic" fill="var(--concrete)">Shown for a middle drawer — the topmost drawer in the stack has no top rail;</text>
+    <text x="${svgW/2}" y="${svgH-6}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" font-style="italic" fill="var(--concrete)">the cabinet top takes its place.</text>`;
 
   box.innerHTML = `<svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">
     ${blocks}
     ${labels}
     ${caption}
+    ${note}
   </svg>`;
 }
 
@@ -7886,7 +7902,7 @@ function ddRenderExplodedDiagram(frontW, frontH, boxFB, boxH, sideL, bottomW, un
   ));
   if(isFinite(bottomW)){
     parts.push(makeBox(
-      matT, matT, 0 - gap*0.7,
+      matT, matT, 0 - gap*1.6,
       Math.max(0.1,bottomW-0), Dref-2*matT, matT,
       PLY, 'Bottom', toLabel(bottomW,unit)+' × '+toLabel(Dref-2*matT,unit)
     ));
@@ -7929,9 +7945,11 @@ function ddRenderExplodedDiagram(frontW, frontH, boxFB, boxH, sideL, bottomW, un
   });
 
   const caption = `<text x="${svgW/2}" y="22" text-anchor="middle" font-family="Oswald, sans-serif" font-size="12" letter-spacing=".03em" fill="var(--concrete)">ISOMETRIC EXPLODED VIEW (BOX HEIGHT SHOWN USES DRAWER 1)</text>`;
+  const subnote = `<text x="${svgW/2}" y="40" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" font-style="italic" fill="var(--concrete)">(heights for other drawers may vary)</text>`;
 
   box.innerHTML = `<svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">
     ${caption}
+    ${subnote}
     ${facesMarkup}
     ${labelsMarkup}
   </svg>`;
@@ -8031,6 +8049,7 @@ function calcDrawerDesign(){
     $('dd-drawer-count').textContent='–';
     $('dd-remaining').textContent='–';
     $('dd-full-alert').style.display='none';
+    $('dd-overflow-alert').style.display='none';
     $('dd-post-fill').style.display='none';
     ddRenderDiagram(NaN, ddOpenWIn, NaN, 0, railW, [], []);
     const lap0 = ddEffectiveLap();
@@ -8061,6 +8080,19 @@ function calcDrawerDesign(){
 
   $('dd-drawer-count').textContent = numDrawers || '–';
   $('dd-remaining').textContent = toLabel(remaining, ddUnit);
+
+  if(numDrawers>0 && remaining<0){
+    // Drawers + gaps + rails already exceed the opening -- no valid
+    // layout exists at these heights, so stop here rather than showing a
+    // diagram or rail placement built on an impossible configuration.
+    $('dd-overflow-alert').style.display = '';
+    $('dd-full-alert').style.display = 'none';
+    $('dd-post-fill').style.display = 'none';
+    ddRenderDiagram(NaN, ddOpenWIn, NaN, 0, railW, [], []);
+    ddRenderExplodedDiagram(NaN, NaN, NaN, NaN, NaN, NaN, ddUnit);
+    return;
+  }
+  $('dd-overflow-alert').style.display = 'none';
 
   const isFull = numDrawers>0 && remaining <= 0.0001;
   $('dd-full-alert').style.display = isFull ? '' : 'none';
@@ -12857,6 +12889,10 @@ function kregOnThicknessInput(){
 
 $('kreg-screwlength').addEventListener('change', kregOnScrewLengthChange);
 $('kreg-thickness').addEventListener('input', kregOnThicknessInput);
+$('kreg-thickness-clear').addEventListener('click', ()=>{
+  $('kreg-thickness').value = '';
+  kregOnThicknessInput();
+});
 kregUpdatePlaceholder();
 
 // ---- Lag Bolts ----
@@ -14915,17 +14951,14 @@ stmodLoadSaves();
 // ---- Calculators: Object Clearance ----
 let oclUnit = 'decimal';
 // rotating an object around one axis holds that axis's dimension fixed
-// while the other two form a diagonal in that plane; the object clears
-// if both the fixed length fits its corresponding space dimension AND
-// the object's own diagonal (in that plane) fits within the space's own
-// diagonal (in that same plane) -- this allows for maneuvering the
-// object diagonally through the available floor area, rather than
-// requiring it to spin in place around one fixed center point.
-function oclAxisClearance(fixedDim, spaceFixedDim, perpA, perpB, spacePerpA, spacePerpB){
+// while the other two form a diagonal in that plane; clearance requires
+// both that the fixed dimension fits within its matching space
+// dimension, AND that the object's diagonal (in that plane) fits within
+// the specified single space dimension for that axis.
+function oclAxisClearance(fixedDim, spaceFixedDim, perpA, perpB, spaceCompareDim){
   const lengthClearance = spaceFixedDim - fixedDim;
   const objDiagonal = Math.sqrt(perpA*perpA + perpB*perpB);
-  const spaceDiagonal = Math.sqrt(spacePerpA*spacePerpA + spacePerpB*spacePerpB);
-  const diagonalClearance = spaceDiagonal - objDiagonal;
+  const diagonalClearance = spaceCompareDim - objDiagonal;
   return Math.min(lengthClearance, diagonalClearance);
 }
 
@@ -14934,56 +14967,53 @@ function oclFmtClearance(val){
   return val>=0 ? txt + ' clear' : '−' + txt + ' short';
 }
 
-// draws one mini-panel: the space cross-section as a rectangle with its
-// own corner-to-corner diagonal drawn full length, and the object's
-// diagonal (in that same plane) drawn as a shorter, colored segment
-// overlaid from the same corner -- directly showing whether the
-// object's diagonal fits within the space's diagonal.
-function oclDrawPanel(cx, panelW, panelH, spaceA, spaceB, objDiagonal, clears, label){
-  const pad = 26;
-  const availW = panelW-pad*2, availH = panelH-76;
-  const scale = Math.min(availW/spaceA, availH/spaceB);
-  const rectW = spaceA*scale, rectH = spaceB*scale;
-  const rx = cx-rectW/2, ry = 34+(availH-rectH)/2;
-
+// draws one mini-panel as two horizontal bar comparisons: the fixed
+// dimension (the axis's own length) against its matching space
+// dimension, and the object's diagonal (in the swept plane) against the
+// single space dimension specified for that axis -- since the
+// comparison is no longer "does a rectangle fit another rectangle" but
+// two independent length-vs-length checks, each gets its own bar rather
+// than a shared rectangle/diagonal picture.
+function oclDrawBar(x, y, w, spaceVal, objVal, clears, rowLabel){
+  const maxVal = Math.max(spaceVal, objVal) * 1.08;
+  const spacePx = w;
+  const objPx = Math.min(objVal/maxVal, 1) * w;
   const color = clears ? 'var(--good)' : 'var(--orange)';
-  const rect = `<rect x="${rx.toFixed(1)}" y="${ry.toFixed(1)}" width="${rectW.toFixed(1)}" height="${rectH.toFixed(1)}" fill="none" stroke="var(--chalk)" stroke-width="2"/>`;
 
-  const spaceDiagonal = Math.sqrt(spaceA*spaceA + spaceB*spaceB);
-  // Unit vector along the diagonal, derived from the RECTANGLE'S OWN
-  // drawn pixel dimensions (not spaceDiagonal, which is in inches) --
-  // mixing an inch-space length into a pixel-space direction vector here
-  // previously made the object-diagonal line badly overshoot the
-  // rectangle instead of stopping proportionally within it.
-  const drawnDiagPx = Math.hypot(rectW, rectH);
-  const ux = rectW/drawnDiagPx, uy = rectH/drawnDiagPx;
-  const fullDiagLine = `<line x1="${rx.toFixed(1)}" y1="${ry.toFixed(1)}" x2="${(rx+rectW).toFixed(1)}" y2="${(ry+rectH).toFixed(1)}" stroke="var(--concrete)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+  const label = `<text x="${x}" y="${(y-6).toFixed(1)}" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--concrete)">${rowLabel}</text>`;
+  const spaceBar = `<rect x="${x}" y="${y.toFixed(1)}" width="${spacePx.toFixed(1)}" height="10" fill="none" stroke="var(--chalk)" stroke-width="1.5"/>`;
+  const objBar = `<rect x="${x}" y="${(y+13).toFixed(1)}" width="${objPx.toFixed(1)}" height="10" fill="${color}" fill-opacity="0.35" stroke="${color}" stroke-width="1.5"/>`;
+  const spaceLabel = `<text x="${(x+w+6).toFixed(1)}" y="${(y+9).toFixed(1)}" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--chalk)">${fmt(spaceVal,2)}</text>`;
+  const objLabel = `<text x="${(x+w+6).toFixed(1)}" y="${(y+22).toFixed(1)}" font-family="IBM Plex Mono, monospace" font-size="9" fill="${color}">${fmt(objVal,2)}</text>`;
 
-  // object's diagonal drawn along that same line, starting from the same
-  // corner, clamped so it never visually overshoots the space's own
-  // diagonal even when the object doesn't clear (the color alone conveys
-  // the fail, not an overshooting line).
-  const drawnObjDiag = Math.min(objDiagonal, spaceDiagonal) * scale;
-  const objDiagLine = `<line x1="${rx.toFixed(1)}" y1="${ry.toFixed(1)}" x2="${(rx+ux*drawnObjDiag).toFixed(1)}" y2="${(ry+uy*drawnObjDiag).toFixed(1)}" stroke="${color}" stroke-width="3.5"/>`;
+  return label+spaceBar+objBar+spaceLabel+objLabel;
+}
+
+function oclDrawPanel(cx, panelW, panelH, fixedVal, spaceFixedVal, objDiagonal, spaceCompareVal, clears, label, fixedRowLabel, diagRowLabel){
+  const barX = cx - panelW/2 + 34, barW = panelW - 68;
 
   const title = `<text x="${cx.toFixed(1)}" y="18" text-anchor="middle" font-family="Oswald, sans-serif" font-size="12" letter-spacing=".03em" fill="var(--concrete)">${label}</text>`;
-  const diagLabel = `<text x="${cx.toFixed(1)}" y="${(ry+rectH+16).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--concrete)">space diag ${fmt(spaceDiagonal,2)} vs object diag ${fmt(objDiagonal,2)}</text>`;
+  const fixedClears = spaceFixedVal >= fixedVal;
+  const diagClears = spaceCompareVal >= objDiagonal;
+  const bar1 = oclDrawBar(barX, 48, barW, spaceFixedVal, fixedVal, fixedClears, fixedRowLabel);
+  const bar2 = oclDrawBar(barX, 100, barW, spaceCompareVal, objDiagonal, diagClears, diagRowLabel);
+  const color = clears ? 'var(--good)' : 'var(--orange)';
   const status = `<text x="${cx.toFixed(1)}" y="${(panelH-8).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="${color}">${clears ? 'CLEARS' : 'TOO TIGHT'}</text>`;
 
-  return rect+fullDiagLine+objDiagLine+title+diagLabel+status;
+  return title+bar1+bar2+status;
 }
 
 function oclRenderDiagram(spaceW, spaceD, spaceH, objW, objD, objH, xClear, yClear, zClear){
   const box = $('ocl-diagram');
-  const svgW=640, svgH=280, panelW=svgW/3;
+  const svgW=640, svgH=170, panelW=svgW/3;
 
   const xDia = Math.sqrt(objD*objD+objH*objH);
   const yDia = Math.sqrt(objW*objW+objH*objH);
   const zDia = Math.sqrt(objW*objW+objD*objD);
 
-  const panelX = oclDrawPanel(panelW*0.5, panelW, svgH, spaceD, spaceH, xDia, xClear>=0, 'X-AXIS (DEPTH × HEIGHT)');
-  const panelY = oclDrawPanel(panelW*1.5, panelW, svgH, spaceW, spaceH, yDia, yClear>=0, 'Y-AXIS (WIDTH × HEIGHT)');
-  const panelZ = oclDrawPanel(panelW*2.5, panelW, svgH, spaceW, spaceD, zDia, zClear>=0, 'Z-AXIS (WIDTH × DEPTH)');
+  const panelX = oclDrawPanel(panelW*0.5, panelW, svgH, objW, spaceW, xDia, spaceH, xClear>=0, 'X-AXIS', 'Width', 'Depth-height diag');
+  const panelY = oclDrawPanel(panelW*1.5, panelW, svgH, objD, spaceD, yDia, spaceH, yClear>=0, 'Y-AXIS', 'Depth', 'Width-height diag');
+  const panelZ = oclDrawPanel(panelW*2.5, panelW, svgH, objH, spaceH, zDia, spaceW, zClear>=0, 'Z-AXIS', 'Height', 'Width-depth diag');
 
   const divider1 = `<line x1="${panelW}" y1="0" x2="${panelW}" y2="${svgH}" stroke="var(--line)" stroke-width="1"/>`;
   const divider2 = `<line x1="${panelW*2}" y1="0" x2="${panelW*2}" y2="${svgH}" stroke="var(--line)" stroke-width="1"/>`;
@@ -15164,9 +15194,15 @@ function calcObjectClearance(){
   }
   $('ocl-alert').style.display = 'none';
 
-  const xClear = oclAxisClearance(objW, spaceW, objD, objH, spaceD, spaceH);
-  const yClear = oclAxisClearance(objD, spaceD, objW, objH, spaceW, spaceH);
-  const zClear = oclAxisClearance(objH, spaceH, objW, objD, spaceW, spaceD);
+  // X-axis: width is the fixed dimension; the object's depth-height
+  // diagonal is checked against the space's HEIGHT.
+  const xClear = oclAxisClearance(objW, spaceW, objD, objH, spaceH);
+  // Y-axis: depth is the fixed dimension; the object's width-height
+  // diagonal is checked against the space's HEIGHT.
+  const yClear = oclAxisClearance(objD, spaceD, objW, objH, spaceH);
+  // Z-axis: height is the fixed dimension; the object's width-depth
+  // diagonal is checked against the space's WIDTH.
+  const zClear = oclAxisClearance(objH, spaceH, objW, objD, spaceW);
   const best = Math.max(xClear, yClear, zClear);
 
   $('ocl-xclear').textContent = oclFmtClearance(xClear);
@@ -15380,6 +15416,7 @@ function cstPopulateDrawerNumbers(){
   const validPrev = prev && parseInt(prev)<=numDrawers;
   sel.value = validPrev ? prev : '1';
   cstLoadSelectedDrawer();
+  calcCabinetStability();
 }
 
 function cstLoadSelectedDrawer(){
@@ -18363,6 +18400,19 @@ function saCollectFieldValues(){
     if(el.type==='checkbox' || el.type==='radio') values[el.id] = { c: el.checked };
     else values[el.id] = { v: el.value };
   });
+  // Unit toggles (Decimal in / Fractional in / Millimeters, etc.) are
+  // plain buttons, not input/select elements with their own value, so
+  // they're otherwise invisible to the persistence scan above -- without
+  // this, a card's selected unit silently resets to its default on
+  // reload while the entered numbers stay as-is, which is worse than not
+  // persisting at all (e.g. "150" entered as millimeters gets
+  // reinterpreted as 150 inches next time the app opens).
+  const unitToggles = {};
+  document.querySelectorAll('[id$="-unit-toggle"]').forEach(toggle=>{
+    const activeBtn = toggle.querySelector('button.active');
+    if(activeBtn && activeBtn.dataset.unit) unitToggles[toggle.id] = activeBtn.dataset.unit;
+  });
+  values.__unitToggles__ = unitToggles;
   return values;
 }
 let saSaveTimer = null;
@@ -18375,6 +18425,12 @@ function saScheduleSave(){
 }
 document.addEventListener('input', e=>{ if(saShouldPersist(e.target)) saScheduleSave(); });
 document.addEventListener('change', e=>{ if(saShouldPersist(e.target)) saScheduleSave(); });
+// Unit-toggle buttons need their own listener -- a button click doesn't
+// fire input/change, so switching units alone (without touching any
+// other field) would otherwise never trigger a save at all.
+document.addEventListener('click', e=>{
+  if(e.target.closest('[id$="-unit-toggle"]')) saScheduleSave();
+});
 
 async function saRestoreFieldValues(){
   let saved;
@@ -18382,6 +18438,24 @@ async function saRestoreFieldValues(){
     const res = await persist.get(SA_FIELD_CACHE_KEY, false);
     saved = JSON.parse(res.value);
   }catch(e){ return; } // nothing saved yet (first run) -- leave the built-in defaults as-is
+
+  // Pass 0: restore each card's selected unit FIRST, before any raw
+  // field values -- by simulating a real click on the correct button
+  // rather than trying to directly set each card's own unit variable
+  // (there are ~40 of these throughout the app, each with its own
+  // internally-named variable). Clicking reuses that card's own,
+  // already-correct conversion logic for free. This must happen before
+  // Pass 1 below: if a field's raw value were restored first while the
+  // unit is still at its page-load default, then switched afterward, the
+  // click handler would try to convert a value that's already in the
+  // target unit as though it were in the old one, corrupting it.
+  const savedToggles = saved.__unitToggles__ || {};
+  Object.entries(savedToggles).forEach(([toggleId, unit])=>{
+    const toggle = document.getElementById(toggleId);
+    if(!toggle) return;
+    const btn = toggle.querySelector('button[data-unit="'+unit+'"]');
+    if(btn && !btn.classList.contains('active')) btn.click();
+  });
 
   // Pass 1: set every field's raw value/checked state directly, without
   // firing events yet, in DOM order. Non-select fields resolve
