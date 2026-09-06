@@ -1118,6 +1118,8 @@
           <div><label id="dc-stack-label">Dado stack width (in)</label><input type="text" id="dc-stack" inputmode="decimal" placeholder="e.g. 0.75"></div>
           <div><label id="dc-desired-label">Desired dado width (in)</label><input type="text" id="dc-desired" inputmode="decimal" placeholder="e.g. 0.875"></div>
         </div>
+        <label id="dc-interior-label">Interior distance (in)</label>
+        <input type="text" id="dc-interior" inputmode="decimal" value="0">
 
         <label>Jig</label>
         <select id="dc-jig"><option>Loading jigs…</option></select>
@@ -1133,9 +1135,12 @@
         </div>
 
         <div class="result">
-          <div class="line"><span>Fence setting</span><b class="hi" id="dc-fence">–</b></div>
+          <div class="line" id="dc-fence-line"><span>Fence setting</span><b class="hi" id="dc-fence">–</b></div>
+          <div class="line" id="dc-fence1-line" style="display:none;"><span>Fence setting 1</span><b class="hi" id="dc-fence1">–</b></div>
+          <div class="line" id="dc-fence2-line" style="display:none;"><span>Fence setting 2</span><b class="hi" id="dc-fence2">–</b></div>
         </div>
-        <div class="note">Fence setting = (Desired dado width − Dado stack width) + Jig offset.</div>
+        <div class="alert-banner" id="dc-stack-alert" style="display:none;">Dado stack width is wider than the desired dado width — reduce the stack or increase the desired width.</div>
+        <div class="note">Fence setting = (Desired dado width − Dado stack width) + Jig offset. With an interior distance greater than 0, two fence settings are shown instead: Fence setting 1 = interior distance + jig offset + (desired dado width − dado stack width); Fence setting 2 = Fence setting 1 + (desired dado width − dado stack width).</div>
       </div>
 
       <div class="card" id="unequal-miter">
@@ -1216,6 +1221,7 @@
           <div class="line"><span>Bevel angle (blade tilt)</span><b class="hi" id="cr-bevel">–</b></div>
         </div>
         <div class="note" id="cr-note">Common spring angles: 38° (38/52 profile) or 45° (45/45 profile). Adjust corner angle for out-of-square walls.</div>
+        <div class="note"><b>Inside corner</b> — keep Left: left side -> top against fence, miter right; right side -> bottom against fence, miter left.<br><b>Outside corner</b> — keep right: right side -> top against fence, miter right; left side -> bottom against fence, miter left.<br>Bevel doesn't change for any cuts.</div>
       </div>
 
       <div class="card" id="polygon">
@@ -1309,10 +1315,12 @@
           <div style="margin-top:12px;font-weight:600;color:var(--chalk);">Left End of Slat</div>
           <div class="line" style="padding-left:16px;"><span>Attaches to:</span><b id="ds-slat-left-attach">–</b></div>
           <div class="line" style="padding-left:16px;"><span>Miter Angle:</span><b id="ds-slat-left-angle">–</b></div>
+          <div class="line" id="ds-slat-left-corner-line" style="padding-left:16px;display:none;"><span>Distance from corner (top/bottom, side):</span><b id="ds-slat-left-corner">–</b></div>
 
           <div style="margin-top:12px;font-weight:600;color:var(--chalk);">Right End of Slat</div>
           <div class="line" style="padding-left:16px;"><span>Attaches to:</span><b id="ds-slat-right-attach">–</b></div>
           <div class="line" style="padding-left:16px;"><span>Miter Angle:</span><b id="ds-slat-right-angle">–</b></div>
+          <div class="line" id="ds-slat-right-corner-line" style="padding-left:16px;display:none;"><span>Distance from corner (top/bottom, side):</span><b id="ds-slat-right-corner">–</b></div>
         </div>
 
         <button type="button" id="ds-print-btn" class="link-btn" style="margin-top:10px;">Print / Save as PDF</button>
@@ -1415,6 +1423,7 @@
           <div class="line"><span>Difference</span><b id="pa-diff">–</b></div>
           <div class="line"><span id="pa-turns-label">Turn revolutions</span><b class="hi" id="pa-turns">–</b></div>
         </div>
+        <div class="alert-banner" id="pa-alert" style="display:none;">Average caliper reading is already thinner than the target thickness — a planer can only remove material, not add it. Double-check your target or your caliper readings.</div>
       </div>
 
       <div class="card">
@@ -3295,7 +3304,7 @@
         </select>
 
         <div class="row" id="gr-cube-inputs">
-          <div><label>Known dimension</label><input type="number" id="gr-knowndim" step="0.0625" placeholder="e.g. 10"></div>
+          <div><label>Known dimension</label><input type="text" inputmode="decimal" id="gr-knowndim" placeholder="e.g. 10"></div>
           <div><label>Location</label>
             <select id="gr-location">
               <option value="length">Length</option>
@@ -5394,20 +5403,38 @@ function renderUmDiagram(widthA, widthB, cornerDeg, angle1Deg, angle2Deg, unit){
   const add = (p,v,s)=>({x:p.x+v.x*s, y:p.y+v.y*s});
 
   const A_outerEnd = add(P0, dA, lenA);
-  const A_innerStart = add(P0, normalA, wpxA);
   const A_innerEnd = add(A_outerEnd, normalA, wpxA);
 
   const B_outerEnd = add(P0, dB, lenB);
-  const B_innerStart = add(P0, normalB, wpxB);
   const B_innerEnd = add(B_outerEnd, normalB, wpxB);
 
-  const Pin = { x: P0.x + normalA.x*wpxA + normalB.x*wpxB, y: P0.y + normalA.y*wpxA + normalB.y*wpxB };
+  // Pin (the inner miter corner) is the actual intersection of the two
+  // boards' inner-edge lines -- each inner edge is the line through
+  // (P0 + normal*width) running in that board's own direction. Simply
+  // vector-summing the two width offsets (P0 + normalA*wpxA +
+  // normalB*wpxB) only coincides with this true intersection when the
+  // boards are perpendicular (a 90 degree corner); at any other angle it
+  // lands at the wrong point, which is what caused one board's corner to
+  // visibly poke out past the other's edge.
+  const Q1 = add(P0, normalA, wpxA), Q2 = add(P0, normalB, wpxB);
+  const det = dA.x*(-dB.y) - (-dB.x)*dA.y;
+  let Pin;
+  if(Math.abs(det) < 1e-9){
+    // dA and dB are parallel (degenerate corner angle) -- fall back to
+    // the simple vector-sum rather than dividing by ~0.
+    Pin = { x: P0.x + normalA.x*wpxA + normalB.x*wpxB, y: P0.y + normalA.y*wpxA + normalB.y*wpxB };
+  } else {
+    const t1 = (-(Q2.x-Q1.x)*dB.y + dB.x*(Q2.y-Q1.y)) / det;
+    Pin = add(Q1, dA, t1);
+  }
   const dirMiter = (()=>{ const dx=Pin.x-P0.x, dy=Pin.y-P0.y, len=Math.hypot(dx,dy)||1; return {x:dx/len,y:dy/len}; })();
 
   const pts = (arr)=> arr.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
 
-  const polyA = `<polygon points="${pts([P0,A_outerEnd,A_innerEnd,A_innerStart])}" fill="var(--surface)" stroke="var(--concrete)" stroke-width="1"/>`;
-  const polyB = `<polygon points="${pts([P0,B_outerEnd,B_innerEnd,B_innerStart])}" fill="var(--surface-raised)" stroke="var(--concrete)" stroke-width="1"/>`;
+  // Both boards share Pin as their near-inner corner so their inner edges
+  // always meet cleanly exactly at the miter line, at any corner angle.
+  const polyA = `<polygon points="${pts([P0,A_outerEnd,A_innerEnd,Pin])}" fill="var(--surface)" stroke="var(--concrete)" stroke-width="1"/>`;
+  const polyB = `<polygon points="${pts([P0,B_outerEnd,B_innerEnd,Pin])}" fill="var(--surface-raised)" stroke="var(--concrete)" stroke-width="1"/>`;
   const miterLine = `<line x1="${P0.x}" y1="${P0.y}" x2="${Pin.x.toFixed(1)}" y2="${Pin.y.toFixed(1)}" stroke="var(--orange)" stroke-width="2"/>`;
 
   // always draws the SHORT (minor, ≤180°) arc between two directions, regardless of call order
@@ -5464,7 +5491,12 @@ function calcUm(){
     return;
   }
   const Cr = rad(C);
-  const angle1 = Math.atan( (umBInches*Math.sin(Cr)) / (umAInches + umBInches*Math.cos(Cr)) );
+  // atan2 (not atan) is required here: at obtuse corner angles with a
+  // wide enough Board B, (umAInches + umBInches*cos(Cr)) can go negative.
+  // Plain atan() loses that sign information and returns a meaningless
+  // negative angle in that case; atan2 correctly places the result in
+  // the right quadrant, always giving a valid angle between 0 and Cr.
+  const angle1 = Math.atan2( umBInches*Math.sin(Cr), umAInches + umBInches*Math.cos(Cr) );
   const angle2 = Cr - angle1;
   $('um-angleA').textContent = fmt(deg(angle1),2) + '°';
   $('um-angleB').textContent = fmt(deg(angle2),2) + '°';
@@ -5539,14 +5571,12 @@ function renderCrownDiagram(miterDeg, bevelDeg, cornerType){
   const miterDir = { x:Math.sin(mRad)*mirror, y:Math.cos(mRad) };
   const miterEnd = { x:center.x+miterDir.x*refLen, y:center.y+miterDir.y*refLen };
 
-  // molding board as a thin rectangle laid along the miter line
-  const boardHalfW = 13;
-  const perp = { x:-miterDir.y, y:miterDir.x };
-  const b1 = { x:center.x+perp.x*boardHalfW, y:center.y+perp.y*boardHalfW };
-  const b2 = { x:center.x-perp.x*boardHalfW, y:center.y-perp.y*boardHalfW };
-  const b3 = { x:miterEnd.x-perp.x*boardHalfW, y:miterEnd.y-perp.y*boardHalfW };
-  const b4 = { x:miterEnd.x+perp.x*boardHalfW, y:miterEnd.y+perp.y*boardHalfW };
-  const board = `<polygon points="${[b1,b2,b3,b4].map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ')}" fill="var(--surface)" stroke="var(--concrete)" stroke-width="1"/>`;
+  // The molding itself sits flat against the fence, running PARALLEL to
+  // it, exactly as it does on a real miter saw -- the workpiece never
+  // rotates. It's the blade/miter gauge that turns to the miter angle,
+  // so that angled cut line is what crosses through the board below.
+  const boardHalfLen = 110, boardDepth = 112;
+  const board = `<rect x="${(center.x-boardHalfLen).toFixed(1)}" y="${fenceY.toFixed(1)}" width="${(boardHalfLen*2).toFixed(1)}" height="${boardDepth}" fill="var(--surface)" stroke="var(--concrete)" stroke-width="1"/>`;
 
   const miterLine = `<line x1="${center.x}" y1="${center.y}" x2="${miterEnd.x.toFixed(1)}" y2="${miterEnd.y.toFixed(1)}" stroke="var(--orange)" stroke-width="2"/>`;
   const miterArc = minorArcGeneric(center, 42, squareRef, miterDir, 'var(--orange)');
@@ -6146,6 +6176,17 @@ function dsComputeSlatList(panelW, H, angleDeg, pitch, slatWidth, reversed, corn
     // distance from that corner.
     function isExclusiveH(p){ return isHorizPt(p.x,p.y) && !isVertPt(p.x,p.y); }
     function isExclusiveV(p){ return isVertPt(p.x,p.y) && !isHorizPt(p.x,p.y); }
+    // Given one point on a top/bottom edge and one on a side edge (in
+    // either order), reports how far each is from the nearest panel
+    // corner, measured along that point's own edge -- this is what
+    // actually gets used to mark the cut on the material: measure this
+    // far along the top/bottom, this far along the side, from the corner
+    // they share.
+    function cornerDistances(p1, p2){
+      const hPt = isExclusiveH(p1) ? p1 : p2;
+      const vPt = isExclusiveH(p1) ? p2 : p1;
+      return { alongTopBottom: Math.min(hPt.x, panelW-hPt.x), alongSide: Math.min(vPt.y, H-vPt.y) };
+    }
     function notchAmount(nearPt, farPt){
       if(!nearPt || !farPt) return 0;
       if(isExclusiveH(nearPt) && isExclusiveV(farPt)) return sin2overcos * Math.min(nearPt.x, panelW-nearPt.x);
@@ -6259,7 +6300,21 @@ function dsComputeSlatList(panelW, H, angleDeg, pitch, slatWidth, reversed, corn
     const bottomLocation = locationOf(boundaryLowPt, lowIsNotch);
     const topLocation = locationOf(boundaryHighPt, highIsNotch);
 
-    slats.push({ length: blankLen, bottomAngle, topAngle, bottomLocation, topLocation, x0, x1, y1, x2, y2, polygon });
+    // When an end is corner-governed, also work out how far along each
+    // of the two edges (measured from the shared corner) that end
+    // actually sits -- a corner triangle's single point is governed by
+    // just one corner, so both its ends report the same pair of
+    // distances; a notch has near/far touching different edge types at
+    // that same end, which is exactly the pair needed.
+    let bottomCorner = null, topCorner = null;
+    if(isCornerTriangle){
+      bottomCorner = topCorner = cornerDistances(boundaryLowPt, boundaryHighPt);
+    } else {
+      if(lowIsNotch) bottomCorner = cornerDistances(nearEntry, farEntry);
+      if(highIsNotch) topCorner = cornerDistances(nearExit, farExit);
+    }
+
+    slats.push({ length: blankLen, bottomAngle, topAngle, bottomLocation, topLocation, bottomCorner, topCorner, x0, x1, y1, x2, y2, polygon });
   }
 
   // number starting from the slat closest to the target corner, sweeping
@@ -6296,6 +6351,8 @@ function dsShowSlatDetail(){
     $('ds-slat-left-angle').textContent = '–';
     $('ds-slat-right-attach').textContent = '–';
     $('ds-slat-right-angle').textContent = '–';
+    $('ds-slat-left-corner-line').style.display = 'none';
+    $('ds-slat-right-corner-line').style.display = 'none';
   } else {
     $('ds-slat-length').textContent = toLabel(s.length, dsUnit);
     // "low"/"high" (the internal along-length ends) don't always
@@ -6304,12 +6361,27 @@ function dsShowSlatDetail(){
     const lowIsLeft = s.x1 <= s.x2;
     const leftAttach = lowIsLeft ? s.bottomLocation : s.topLocation;
     const leftAngle = lowIsLeft ? s.bottomAngle : s.topAngle;
+    const leftCorner = lowIsLeft ? s.bottomCorner : s.topCorner;
     const rightAttach = lowIsLeft ? s.topLocation : s.bottomLocation;
     const rightAngle = lowIsLeft ? s.topAngle : s.bottomAngle;
+    const rightCorner = lowIsLeft ? s.topCorner : s.bottomCorner;
     $('ds-slat-left-attach').textContent = leftAttach;
     $('ds-slat-left-angle').textContent = fmt(leftAngle,1) + '°';
     $('ds-slat-right-attach').textContent = rightAttach;
     $('ds-slat-right-angle').textContent = fmt(rightAngle,1) + '°';
+
+    if(leftCorner){
+      $('ds-slat-left-corner-line').style.display = '';
+      $('ds-slat-left-corner').textContent = toLabel(leftCorner.alongTopBottom, dsUnit) + ', ' + toLabel(leftCorner.alongSide, dsUnit);
+    } else {
+      $('ds-slat-left-corner-line').style.display = 'none';
+    }
+    if(rightCorner){
+      $('ds-slat-right-corner-line').style.display = '';
+      $('ds-slat-right-corner').textContent = toLabel(rightCorner.alongTopBottom, dsUnit) + ', ' + toLabel(rightCorner.alongSide, dsUnit);
+    } else {
+      $('ds-slat-right-corner-line').style.display = 'none';
+    }
   }
   if(dsLastRenderParams){
     const p = dsLastRenderParams;
@@ -6613,7 +6685,7 @@ const DEFAULT_DADO_JIGS = [
   { id:'zero', name:'No offset', offset:0 }
 ];
 let dadoJigState = { jigs: DEFAULT_DADO_JIGS.slice(), lastUsedId: 'zero', unit: 'decimal' };
-let dcStackInches = NaN, dcDesiredInches = NaN;
+let dcStackInches = NaN, dcDesiredInches = NaN, dcInteriorInches = 0;
 
 function genDadoJigId(){ return 'dj' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
@@ -6748,9 +6820,11 @@ document.querySelectorAll('#dc-unit-toggle button').forEach(btn=>{
     dadoJigState.unit = btn.dataset.unit;
     $('dc-stack-label').textContent = 'Dado stack width (' + unitAbbrev(dadoJigState.unit) + ')';
     $('dc-desired-label').textContent = 'Desired dado width (' + unitAbbrev(dadoJigState.unit) + ')';
+    $('dc-interior-label').textContent = 'Interior distance (' + unitAbbrev(dadoJigState.unit) + ')';
     $('dc-new-offset').placeholder = 'Offset — ' + unitPlaceholder(dadoJigState.unit);
     $('dc-stack').value = isFinite(dcStackInches) ? toInputValue(dcStackInches, dadoJigState.unit) : '';
     $('dc-desired').value = isFinite(dcDesiredInches) ? toInputValue(dcDesiredInches, dadoJigState.unit) : '';
+    $('dc-interior').value = isFinite(dcInteriorInches) ? toInputValue(dcInteriorInches, dadoJigState.unit) : '';
     saveDadoJigs();
     renderDadoJigSelect();
     renderDadoJigManager();
@@ -6766,10 +6840,41 @@ $('dc-desired').addEventListener('input', ()=>{
   dcDesiredInches = parseLengthInput($('dc-desired').value, dadoJigState.unit);
   calcDado();
 });
+$('dc-interior').addEventListener('input', ()=>{
+  dcInteriorInches = parseLengthInput($('dc-interior').value, dadoJigState.unit);
+  calcDado();
+});
 
 function calcDado(){
   const jig = currentDadoJig();
   const off = jig ? jig.offset : 0;
+
+  const hasInterior = isFinite(dcInteriorInches) && dcInteriorInches > 0;
+  const stackTooWide = isFinite(dcStackInches) && isFinite(dcDesiredInches) && dcStackInches > dcDesiredInches;
+  const showWarning = hasInterior && stackTooWide;
+
+  $('dc-fence-line').style.display = hasInterior ? 'none' : '';
+  $('dc-fence1-line').style.display = (hasInterior && !showWarning) ? '' : 'none';
+  $('dc-fence2-line').style.display = (hasInterior && !showWarning) ? '' : 'none';
+  $('dc-stack-alert').style.display = showWarning ? '' : 'none';
+
+  if(hasInterior){
+    if(showWarning) return; // warning banner shown instead of results above
+    if(!isFinite(dcDesiredInches) || !isFinite(dcStackInches)){
+      $('dc-fence1').textContent = '–'; $('dc-fence2').textContent = '–';
+      return;
+    }
+    // Fence setting 1 = interior distance + jig offset + (desired - stack).
+    // Fence setting 2 = fence setting 1 + (desired - stack) -- both
+    // settings represent the same "shift by the stack/desired offset"
+    // two-pass technique, each one pass further along by that same amount.
+    const fence1 = dcInteriorInches + off + (dcDesiredInches - dcStackInches);
+    const fence2 = fence1 + (dcDesiredInches - dcStackInches);
+    $('dc-fence1').textContent = toLabel(fence1, dadoJigState.unit);
+    $('dc-fence2').textContent = toLabel(fence2, dadoJigState.unit);
+    return;
+  }
+
   if(!isFinite(dcStackInches) || !isFinite(dcDesiredInches)){
     $('dc-fence').textContent = '–';
     return;
@@ -6881,6 +6986,7 @@ function calcPlanerAdjustment(){
   const cals = [paCal1Inches, paCal2Inches, paCal3Inches].filter(v=>isFinite(v));
   if(!cals.length){
     $('pa-avg').textContent='–'; $('pa-diff').textContent='–'; $('pa-turns').textContent='–'; $('pa-turns-label').textContent='Turn revolutions';
+    $('pa-alert').style.display = 'none';
     return;
   }
   const avg = cals.reduce((a,b)=>a+b,0)/cals.length;
@@ -6888,8 +6994,17 @@ function calcPlanerAdjustment(){
 
   if(!isFinite(paTargetInches)){
     $('pa-diff').textContent='–'; $('pa-turns').textContent='–'; $('pa-turns-label').textContent='Turn revolutions';
+    $('pa-alert').style.display = 'none';
     return;
   }
+
+  if(avg < paTargetInches){
+    $('pa-diff').textContent='–'; $('pa-turns').textContent='–'; $('pa-turns-label').textContent='Turn revolutions';
+    $('pa-alert').style.display = '';
+    return;
+  }
+  $('pa-alert').style.display = 'none';
+
   const diff = avg - paTargetInches;
   $('pa-diff').textContent = toLabel(diff, paUnit);
   const turns = diff / PLANER_IN_PER_REV;
@@ -15371,8 +15486,13 @@ function grToggleShapeInputs(){
 
 document.querySelectorAll('#gr-unit-toggle button').forEach(btn=>{
   btn.addEventListener('click', ()=>{
+    const oldUnit = grUnit;
+    const knownInches = parseLengthInput($('gr-knowndim').value, oldUnit);
+
     grUnit = btn.dataset.unit;
     document.querySelectorAll('#gr-unit-toggle button').forEach(b=>b.classList.toggle('active', b===btn));
+
+    if(isFinite(knownInches)) $('gr-knowndim').value = toInputValue(knownInches, grUnit);
     calcGoldenRatio();
   });
 });
@@ -15393,9 +15513,9 @@ function grRenderCubeDiagram(L, W, H){
   // side face (parallelogram)
   const side = `<polygon points="${(ox+bw).toFixed(1)},${(oy-bh).toFixed(1)} ${(ox+bw+skewX).toFixed(1)},${(oy-bh-skewY).toFixed(1)} ${(ox+bw+skewX).toFixed(1)},${(oy-skewY).toFixed(1)} ${(ox+bw).toFixed(1)},${oy}" fill="var(--good)" fill-opacity="0.2" stroke="var(--chalk)" stroke-width="2"/>`;
 
-  const hLabel = `<text x="${(ox-10).toFixed(1)}" y="${(oy-bh/2).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--chalk)">H ${fmt(H,3)}</text>`;
-  const wLabel = `<text x="${(ox+bw/2).toFixed(1)}" y="${(oy+16).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--chalk)">W ${fmt(W,3)}</text>`;
-  const lLabel = `<text x="${(ox+bw+skewX+8).toFixed(1)}" y="${(oy-bh/2-skewY/2).toFixed(1)}" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--chalk)">L ${fmt(L,3)}</text>`;
+  const hLabel = `<text x="${(ox-10).toFixed(1)}" y="${(oy-bh/2).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--chalk)">H ${toLabel(H,grUnit)}</text>`;
+  const wLabel = `<text x="${(ox+bw/2).toFixed(1)}" y="${(oy+16).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--chalk)">W ${toLabel(W,grUnit)}</text>`;
+  const lLabel = `<text x="${(ox+bw+skewX+8).toFixed(1)}" y="${(oy-bh/2-skewY/2).toFixed(1)}" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--chalk)">L ${toLabel(L,grUnit)}</text>`;
 
   const caption = `<text x="${svgW/2}" y="24" text-anchor="middle" font-family="Oswald, sans-serif" font-size="12" letter-spacing=".03em" fill="var(--concrete)">GOLDEN RATIO BOX — W = H×φ, L = W×φ</text>`;
 
@@ -15418,9 +15538,9 @@ function grRenderPlaneDiagram(L, W){
   const squareSide = drawW;
   const squareLine = `<line x1="${(x0+squareSide).toFixed(1)}" y1="${y0.toFixed(1)}" x2="${(x0+squareSide).toFixed(1)}" y2="${(y0+drawW).toFixed(1)}" stroke="var(--good)" stroke-width="1.5" stroke-dasharray="5,3"/>`;
 
-  const lLabel = `<text x="${(x0+drawL/2).toFixed(1)}" y="${(y0+drawW+22).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--concrete)">LENGTH — ${fmt(L,3)} in</text>`;
+  const lLabel = `<text x="${(x0+drawL/2).toFixed(1)}" y="${(y0+drawW+22).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--concrete)">LENGTH — ${toLabel(L,grUnit)}</text>`;
   const wLabelY = (y0+drawW/2).toFixed(1);
-  const wLabel = `<text x="${(x0-14).toFixed(1)}" y="${wLabelY}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--concrete)" transform="rotate(-90 ${(x0-14).toFixed(1)} ${wLabelY})">WIDTH — ${fmt(W,3)} in</text>`;
+  const wLabel = `<text x="${(x0-14).toFixed(1)}" y="${wLabelY}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--concrete)" transform="rotate(-90 ${(x0-14).toFixed(1)} ${wLabelY})">WIDTH — ${toLabel(W,grUnit)}</text>`;
   const caption = `<text x="${svgW/2}" y="24" text-anchor="middle" font-family="Oswald, sans-serif" font-size="12" letter-spacing=".03em" fill="var(--concrete)">GOLDEN RECTANGLE — LENGTH = WIDTH × φ</text>`;
 
   box.innerHTML = `<svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">
@@ -15435,9 +15555,9 @@ function calcGoldenRatio(){
   const shape = $('gr-shape').value;
 
   if(shape==='cube'){
-    const known = parseFloat($('gr-knowndim').value);
+    const known = parseLengthInput($('gr-knowndim').value, grUnit);
     const location = $('gr-location').value;
-    if(!known){
+    if(!isFinite(known) || known<=0){
       ['gr-length','gr-width','gr-height'].forEach(id=>$(id).textContent='–');
       $('gr-diagram').innerHTML = '';
       return;
@@ -17374,12 +17494,25 @@ function clshRenderDiagram(panelLength, panelWidth, positions){
     labels += `<text x="${x.toFixed(1)}" y="${(y0+drawW+24).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--orange)">${fmt(pos,3)}</text>`;
   });
 
+  // Individual boards run the full panel LENGTH and are glued edge-to-edge
+  // along their long sides to build up the panel's WIDTH -- so the seams
+  // between boards run horizontally (parallel to the length), crossing
+  // the clamps at a right angle, not parallel to them. N boards means
+  // N-1 interior seams, dividing the panel's width into N equal strips.
+  const numBoards = positions.length - 1;
+  let boardEdges = '';
+  for(let k=1; k<numBoards; k++){
+    const y = y0 + (drawW/numBoards)*k;
+    boardEdges += `<line x1="${(x0-10).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(x0+drawL+10).toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--concrete)" stroke-width="1" stroke-dasharray="3,3"/>`;
+  }
+
   const lengthLabel = `<text x="${(x0+drawL/2).toFixed(1)}" y="${(y0-16).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--concrete)">LENGTH ${fmt(panelLength,3)}</text>`;
   const caption = `<text x="${svgW/2}" y="20" text-anchor="middle" font-family="Oswald, sans-serif" font-size="12" letter-spacing=".03em" fill="var(--concrete)">CLAMP LOCATIONS — DISTANCE FROM LEFT END</text>`;
 
   box.innerHTML = `<svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">
     ${caption}
     ${outline}
+    ${boardEdges}
     ${clamps}
     ${lengthLabel}
     ${labels}
