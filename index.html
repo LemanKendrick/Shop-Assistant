@@ -1556,8 +1556,8 @@
           <div><label id="pf-rabbetw-label">Rabbet width (in)</label><input type="text" id="pf-rabbetw" inputmode="decimal" placeholder="e.g. 0.375"></div>
         </div>
         <div class="row">
-          <div><label id="pf-piclap-label">Picture lap (in)</label><input type="text" id="pf-piclap" inputmode="decimal" placeholder="e.g. 0.125"></div>
-          <div><label id="pf-matlap-label">Mat lap (in)</label><input type="text" id="pf-matlap" inputmode="decimal" placeholder="e.g. 0.125"></div>
+          <div><label id="pf-piclap-label">Picture lap (in)</label><input type="text" id="pf-piclap" inputmode="decimal" placeholder="e.g. 0.25"></div>
+          <div><label id="pf-matlap-label">Mat lap (in)</label><input type="text" id="pf-matlap" inputmode="decimal" placeholder="e.g. 0.25"></div>
         </div>
 
         <div class="result">
@@ -3141,25 +3141,31 @@
 
       <div class="card">
         <h3>Object Clearance</h3>
-        <p class="desc">Checks whether an object can rotate around each axis and still clear the space. X = object width, Y = object depth, Z = object height. Rotating around an axis keeps that dimension fixed while the other two sweep out a circle, so clearance depends on both the swept diameter and the length along the rotation axis.</p>
-        <div class="row">
-          <div><label>Space width</label><input type="number" id="ocl-spacew" step="0.25" placeholder="e.g. 40"></div>
-          <div><label>Space depth</label><input type="number" id="ocl-spaced" step="0.25" placeholder="e.g. 30"></div>
+        <p class="desc">Checks whether an object can rotate around each axis and still clear the space. X = object width, Y = object depth, Z = object height. Rotating around an axis keeps that dimension fixed while the other two form a diagonal in that plane — clearance requires both that the fixed dimension fits within its matching space dimension, and that the object's diagonal (in that plane) fits within the space's own diagonal (in that same plane), allowing for maneuvering the object diagonally through the available floor area rather than spinning in place.</p>
+        <div class="unit-toggle" id="ocl-unit-toggle">
+          <button type="button" data-unit="decimal" class="active">Decimal in</button>
+          <button type="button" data-unit="fraction">Fractional in</button>
+          <button type="button" data-unit="mm">Millimeters</button>
         </div>
-        <label>Space height</label>
-        <input type="number" id="ocl-spaceh" step="0.25" placeholder="e.g. 84">
         <div class="row">
-          <div><label>Object width</label><input type="number" id="ocl-objw" step="0.25" placeholder="e.g. 36"></div>
-          <div><label>Object depth</label><input type="number" id="ocl-objd" step="0.25" placeholder="e.g. 20"></div>
+          <div><label id="ocl-spacew-label">Space width</label><input type="text" id="ocl-spacew" inputmode="decimal" placeholder="e.g. 40"></div>
+          <div><label id="ocl-spaced-label">Space depth</label><input type="text" id="ocl-spaced" inputmode="decimal" placeholder="e.g. 30"></div>
         </div>
-        <label>Object height</label>
-        <input type="number" id="ocl-objh" step="0.25" placeholder="e.g. 30">
+        <label id="ocl-spaceh-label">Space height</label>
+        <input type="text" id="ocl-spaceh" inputmode="decimal" placeholder="e.g. 84">
+        <div class="row">
+          <div><label id="ocl-objw-label">Object width</label><input type="text" id="ocl-objw" inputmode="decimal" placeholder="e.g. 36"></div>
+          <div><label id="ocl-objd-label">Object depth</label><input type="text" id="ocl-objd" inputmode="decimal" placeholder="e.g. 20"></div>
+        </div>
+        <label id="ocl-objh-label">Object height</label>
+        <input type="text" id="ocl-objh" inputmode="decimal" placeholder="e.g. 30">
         <div class="result">
           <div class="line"><span>X-axis clearance</span><b id="ocl-xclear">–</b></div>
           <div class="line"><span>Y-axis clearance</span><b id="ocl-yclear">–</b></div>
           <div class="line"><span>Z-axis clearance</span><b id="ocl-zclear">–</b></div>
           <div class="line"><span>Best clearance distance</span><b class="hi" id="ocl-best">–</b></div>
         </div>
+        <div class="alert-banner" id="ocl-alert" style="display:none;"></div>
         <div class="diagram-wrap">
           <div id="ocl-diagram"></div>
         </div>
@@ -14907,45 +14913,69 @@ $('stmod-save-btn').addEventListener('click', ()=>{
 stmodLoadSaves();
 
 // ---- Calculators: Object Clearance ----
+let oclUnit = 'decimal';
 // rotating an object around one axis holds that axis's dimension fixed
-// while the other two sweep through a circle whose diameter is their
-// diagonal; the object clears if both the fixed length fits its
-// corresponding space dimension and the swept diameter fits within the
-// smaller of the other two space dimensions
+// while the other two form a diagonal in that plane; the object clears
+// if both the fixed length fits its corresponding space dimension AND
+// the object's own diagonal (in that plane) fits within the space's own
+// diagonal (in that same plane) -- this allows for maneuvering the
+// object diagonally through the available floor area, rather than
+// requiring it to spin in place around one fixed center point.
 function oclAxisClearance(fixedDim, spaceFixedDim, perpA, perpB, spacePerpA, spacePerpB){
   const lengthClearance = spaceFixedDim - fixedDim;
-  const diameter = Math.sqrt(perpA*perpA + perpB*perpB);
-  const diameterClearance = Math.min(spacePerpA, spacePerpB) - diameter;
-  return Math.min(lengthClearance, diameterClearance);
+  const objDiagonal = Math.sqrt(perpA*perpA + perpB*perpB);
+  const spaceDiagonal = Math.sqrt(spacePerpA*spacePerpA + spacePerpB*spacePerpB);
+  const diagonalClearance = spaceDiagonal - objDiagonal;
+  return Math.min(lengthClearance, diagonalClearance);
 }
 
 function oclFmtClearance(val){
-  const txt = fmt(Math.abs(val),3);
+  const txt = toLabel(Math.abs(val), oclUnit);
   return val>=0 ? txt + ' clear' : '−' + txt + ' short';
 }
 
-// draws one mini-panel: the space cross-section as a rectangle, the
-// object's swept diameter as a circle, sized/colored to show pass or fail
-function oclDrawPanel(cx, panelW, panelH, spaceA, spaceB, diameter, clears, label){
+// draws one mini-panel: the space cross-section as a rectangle with its
+// own corner-to-corner diagonal drawn full length, and the object's
+// diagonal (in that same plane) drawn as a shorter, colored segment
+// overlaid from the same corner -- directly showing whether the
+// object's diagonal fits within the space's diagonal.
+function oclDrawPanel(cx, panelW, panelH, spaceA, spaceB, objDiagonal, clears, label){
   const pad = 26;
-  const availW = panelW-pad*2, availH = panelH-52;
+  const availW = panelW-pad*2, availH = panelH-76;
   const scale = Math.min(availW/spaceA, availH/spaceB);
   const rectW = spaceA*scale, rectH = spaceB*scale;
   const rx = cx-rectW/2, ry = 34+(availH-rectH)/2;
 
   const color = clears ? 'var(--good)' : 'var(--orange)';
   const rect = `<rect x="${rx.toFixed(1)}" y="${ry.toFixed(1)}" width="${rectW.toFixed(1)}" height="${rectH.toFixed(1)}" fill="none" stroke="var(--chalk)" stroke-width="2"/>`;
-  const r = (diameter/2)*scale;
-  const circle = `<circle cx="${cx.toFixed(1)}" cy="${(ry+rectH/2).toFixed(1)}" r="${r.toFixed(1)}" fill="${color}" fill-opacity="0.25" stroke="${color}" stroke-width="2"/>`;
+
+  const spaceDiagonal = Math.sqrt(spaceA*spaceA + spaceB*spaceB);
+  // Unit vector along the diagonal, derived from the RECTANGLE'S OWN
+  // drawn pixel dimensions (not spaceDiagonal, which is in inches) --
+  // mixing an inch-space length into a pixel-space direction vector here
+  // previously made the object-diagonal line badly overshoot the
+  // rectangle instead of stopping proportionally within it.
+  const drawnDiagPx = Math.hypot(rectW, rectH);
+  const ux = rectW/drawnDiagPx, uy = rectH/drawnDiagPx;
+  const fullDiagLine = `<line x1="${rx.toFixed(1)}" y1="${ry.toFixed(1)}" x2="${(rx+rectW).toFixed(1)}" y2="${(ry+rectH).toFixed(1)}" stroke="var(--concrete)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+
+  // object's diagonal drawn along that same line, starting from the same
+  // corner, clamped so it never visually overshoots the space's own
+  // diagonal even when the object doesn't clear (the color alone conveys
+  // the fail, not an overshooting line).
+  const drawnObjDiag = Math.min(objDiagonal, spaceDiagonal) * scale;
+  const objDiagLine = `<line x1="${rx.toFixed(1)}" y1="${ry.toFixed(1)}" x2="${(rx+ux*drawnObjDiag).toFixed(1)}" y2="${(ry+uy*drawnObjDiag).toFixed(1)}" stroke="${color}" stroke-width="3.5"/>`;
+
   const title = `<text x="${cx.toFixed(1)}" y="18" text-anchor="middle" font-family="Oswald, sans-serif" font-size="12" letter-spacing=".03em" fill="var(--concrete)">${label}</text>`;
+  const diagLabel = `<text x="${cx.toFixed(1)}" y="${(ry+rectH+16).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--concrete)">space diag ${fmt(spaceDiagonal,2)} vs object diag ${fmt(objDiagonal,2)}</text>`;
   const status = `<text x="${cx.toFixed(1)}" y="${(panelH-8).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="${color}">${clears ? 'CLEARS' : 'TOO TIGHT'}</text>`;
 
-  return rect+circle+title+status;
+  return rect+fullDiagLine+objDiagLine+title+diagLabel+status;
 }
 
 function oclRenderDiagram(spaceW, spaceD, spaceH, objW, objD, objH, xClear, yClear, zClear){
   const box = $('ocl-diagram');
-  const svgW=640, svgH=260, panelW=svgW/3;
+  const svgW=640, svgH=280, panelW=svgW/3;
 
   const xDia = Math.sqrt(objD*objD+objH*objH);
   const yDia = Math.sqrt(objW*objW+objH*objH);
@@ -15104,18 +15134,35 @@ $('uc-oz').addEventListener('input', ()=>ucDropsUpdateFrom('uc-oz','oz'));
 $('uc-drops').addEventListener('input', ()=>ucDropsUpdateFrom('uc-drops','drops'));
 
 function calcObjectClearance(){
-  const spaceW = parseFloat($('ocl-spacew').value);
-  const spaceD = parseFloat($('ocl-spaced').value);
-  const spaceH = parseFloat($('ocl-spaceh').value);
-  const objW = parseFloat($('ocl-objw').value);
-  const objD = parseFloat($('ocl-objd').value);
-  const objH = parseFloat($('ocl-objh').value);
+  const spaceW = parseLengthInput($('ocl-spacew').value, oclUnit);
+  const spaceD = parseLengthInput($('ocl-spaced').value, oclUnit);
+  const spaceH = parseLengthInput($('ocl-spaceh').value, oclUnit);
+  const objW = parseLengthInput($('ocl-objw').value, oclUnit);
+  const objD = parseLengthInput($('ocl-objd').value, oclUnit);
+  const objH = parseLengthInput($('ocl-objh').value, oclUnit);
 
-  if(!spaceW || !spaceD || !spaceH || !objW || !objD || !objH){
+  if(!isFinite(spaceW) || !isFinite(spaceD) || !isFinite(spaceH) || !isFinite(objW) || !isFinite(objD) || !isFinite(objH)){
     ['ocl-xclear','ocl-yclear','ocl-zclear','ocl-best'].forEach(id=>$(id).textContent='–');
     $('ocl-diagram').innerHTML = '';
+    $('ocl-alert').style.display = 'none';
     return;
   }
+
+  // An object dimension bigger than the space's matching dimension means
+  // it doesn't even fit in its own natural orientation, let alone
+  // rotated -- no clearance calculation is meaningful at that point.
+  const overages = [];
+  if(objW > spaceW) overages.push('width (' + toLabel(objW,oclUnit) + ' > ' + toLabel(spaceW,oclUnit) + ')');
+  if(objD > spaceD) overages.push('depth (' + toLabel(objD,oclUnit) + ' > ' + toLabel(spaceD,oclUnit) + ')');
+  if(objH > spaceH) overages.push('height (' + toLabel(objH,oclUnit) + ' > ' + toLabel(spaceH,oclUnit) + ')');
+  if(overages.length){
+    ['ocl-xclear','ocl-yclear','ocl-zclear','ocl-best'].forEach(id=>$(id).textContent='–');
+    $('ocl-diagram').innerHTML = '';
+    $('ocl-alert').textContent = 'Object ' + overages.join(', ') + ' — the object is already bigger than the space in that dimension, before any rotation is considered.';
+    $('ocl-alert').style.display = '';
+    return;
+  }
+  $('ocl-alert').style.display = 'none';
 
   const xClear = oclAxisClearance(objW, spaceW, objD, objH, spaceD, spaceH);
   const yClear = oclAxisClearance(objD, spaceD, objW, objH, spaceW, spaceH);
@@ -15130,6 +15177,33 @@ function calcObjectClearance(){
   oclRenderDiagram(spaceW, spaceD, spaceH, objW, objD, objH, xClear, yClear, zClear);
 }
 ['ocl-spacew','ocl-spaced','ocl-spaceh','ocl-objw','ocl-objd','ocl-objh'].forEach(id=>$(id).addEventListener('input', calcObjectClearance));
+
+const OCL_LABEL_TEXT = {
+  'ocl-spacew-label':'Space width', 'ocl-spaced-label':'Space depth', 'ocl-spaceh-label':'Space height',
+  'ocl-objw-label':'Object width', 'ocl-objd-label':'Object depth', 'ocl-objh-label':'Object height'
+};
+function oclUpdateLabels(){
+  const suffix = ' (' + unitAbbrev(oclUnit) + ')';
+  Object.entries(OCL_LABEL_TEXT).forEach(([labelId,text])=>{ $(labelId).textContent = text + suffix; });
+}
+document.querySelectorAll('#ocl-unit-toggle button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const oldUnit = oclUnit;
+    const fieldIds = ['ocl-spacew','ocl-spaced','ocl-spaceh','ocl-objw','ocl-objd','ocl-objh'];
+    const inches = {};
+    fieldIds.forEach(id=>{ inches[id] = parseLengthInput($(id).value, oldUnit); });
+
+    oclUnit = btn.dataset.unit;
+    document.querySelectorAll('#ocl-unit-toggle button').forEach(b=>b.classList.toggle('active', b===btn));
+
+    fieldIds.forEach(id=>{
+      if(isFinite(inches[id])) $(id).value = toInputValue(inches[id], oclUnit);
+    });
+    oclUpdateLabels();
+    calcObjectClearance();
+  });
+});
+oclUpdateLabels();
 
 // ---- Calculators: Shelf Sag ----
 // modulus of elasticity, million psi — standard/typical values from wood
