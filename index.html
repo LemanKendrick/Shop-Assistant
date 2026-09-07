@@ -1766,6 +1766,7 @@
           <div><label id="rf-fascia-label">Fascia width (in)</label><input type="text" id="rf-fascia" inputmode="decimal" placeholder="e.g. 5.5"></div>
         </div>
         <div class="alert-banner" id="rf-notch-alert" style="display:none;"></div>
+        <div class="alert-banner" id="rf-fascia-alert" style="display:none;"></div>
 
         <div class="result">
           <div class="line"><span>Minimum stock length</span><b class="hi" id="rf-length">–</b></div>
@@ -1783,6 +1784,8 @@
           <div id="rf-diagram"></div>
           <div class="note" id="rf-notch-caption"></div>
         </div>
+
+        <button type="button" id="rf-print-btn" class="link-btn" style="margin-top:10px;">Print / Save as PDF</button>
 
         <div class="section-divider">Saved Designs</div>
         <div class="shim-row shim-row-new">
@@ -1857,6 +1860,8 @@
           <div id="st-diagram"></div>
         </div>
         <div class="note">The dashed green lines from each Pt B*n* to its Pt B*n*1 are the Throat Distance — the remaining stringer material at that step's inside corner.</div>
+
+        <button type="button" id="st-print-btn" class="link-btn" style="margin-top:10px;">Print / Save as PDF</button>
 
         <div class="section-divider">Saved Designs</div>
         <div class="shim-row shim-row-new">
@@ -4041,8 +4046,16 @@
         <div id="pms-flakes-panel">
           <p class="desc">Mix shellac flakes and denatured alcohol to a target "pound cut" — X lbs of flakes dissolved to make roughly one gallon of finished solution. 2-lb cut is the most common general-purpose mix.</p>
           <div class="row">
-            <div><label>Cut (lb)</label><input type="number" id="pms-cut" value="2" step="0.5"></div>
-            <div><label>Volume (qt)</label><input type="number" id="pms-volume" value="1" step="0.25"></div>
+            <div><label>Cut (lb)</label>
+              <select id="pms-cut">
+                <option value="0.5">0.5</option><option value="1">1</option><option value="1.5">1.5</option><option value="2" selected>2</option><option value="2.5">2.5</option><option value="3">3</option><option value="3.5">3.5</option><option value="4">4</option><option value="4.5">4.5</option><option value="5">5</option>
+              </select>
+            </div>
+            <div><label>Volume (oz)</label>
+              <select id="pms-volume">
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32" selected>32</option>
+              </select>
+            </div>
           </div>
           <div class="result">
             <div class="line"><span>Shellac flakes</span><b class="hi" id="pms-flakes">–</b></div>
@@ -4062,9 +4075,17 @@
                 <option value="2.0" selected>2.0</option>
                 <option value="2.5">2.5</option>
                 <option value="3.0">3.0</option>
+                <option value="3.5">3.5</option>
+                <option value="4.0">4.0</option>
+                <option value="4.5">4.5</option>
+                <option value="5.0">5.0</option>
               </select>
             </div>
-            <div><label>Existing Ounces</label><input type="number" id="pms-existing-oz" step="0.25" placeholder="e.g. 16"></div>
+            <div><label>Existing Ounces</label>
+              <select id="pms-existing-oz">
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+              </select>
+            </div>
           </div>
           <label>Desired Cut (lb)</label>
           <select id="pms-desired-cut">
@@ -4073,6 +4094,10 @@
             <option value="1.5">1.5</option>
             <option value="2.0">2.0</option>
             <option value="2.5">2.5</option>
+            <option value="3.0">3.0</option>
+            <option value="3.5">3.5</option>
+            <option value="4.0">4.0</option>
+            <option value="4.5">4.5</option>
           </select>
           <div class="result">
             <div class="line"><span>Add Ounces</span><b class="hi" id="pms-add-oz">–</b></div>
@@ -8634,6 +8659,25 @@ function calcRafterDesign(){
   // distance on the same scale as the top edge, measured from one squared end.
   const hap = isFinite(riseDeg) ? rafterWidth * Math.tan(theta) : NaN;
 
+  // The actual vertical height of the plumb cut face at the rafter tail
+  // (what the fascia board needs to cover) is rafterWidth/cos(theta) --
+  // NOT hap (rafterWidth*tan(theta)) computed above, which is a
+  // different quantity: the horizontal-along-the-edge offset used to
+  // mark where the same cut lands on the top edge vs. the bottom edge of
+  // the board stock. Derived directly from the intersection of a
+  // vertical line with the two parallel, angled top/bottom edges: at
+  // theta=0 (flat) this correctly reduces to exactly rafterWidth, and it
+  // correctly grows (not shrinks) as the pitch gets steeper, since a
+  // plumb cut across a steeper board runs closer to parallel with it.
+  const fasciaCutHeight = isFinite(theta) ? rafterWidth / Math.cos(theta) : NaN;
+  const fasciaAlertEl = $('rf-fascia-alert');
+  if(isFinite(fasciaCutHeight) && isFinite(rfFasciaIn) && fasciaCutHeight > rfFasciaIn){
+    fasciaAlertEl.textContent = 'Fascia width (' + fmt(rfFasciaIn,3) + ' in) is narrower than the ' + fmt(fasciaCutHeight,3) + ' in tall plumb cut at the rafter tail — the fascia board won\'t fully cover the cut face.';
+    fasciaAlertEl.style.display = '';
+  } else {
+    fasciaAlertEl.style.display = 'none';
+  }
+
   let overallLength = NaN, points = [], raftersTotal = NaN;
 
   if(rfRoofType === 'a-roof'){
@@ -8909,6 +8953,91 @@ function rfRenderSavedList(){
     list.appendChild(row);
   });
 }
+
+function rfPrintLayout(){
+  const stockLength = $('rf-length').textContent;
+  if(stockLength === '–'){
+    alert('Enter building dimensions and rise to compute a layout first.');
+    return;
+  }
+  const roofType = $('rf-roof-type').value;
+  const roofTypeLabel = $('rf-roof-type').options[$('rf-roof-type').selectedIndex].text;
+  const rafterSizeLabel = $('rf-size').value;
+  const ocLabel = $('rf-oc').options[$('rf-oc').selectedIndex].text;
+
+  // Rafter Design keeps its layout points as a local variable inside
+  // calcRafterDesign rather than storing them globally (unlike Stairs &
+  // Steps below) -- reading the already-rendered layout-point rows here
+  // avoids re-implementing that a-roof/slope-roof point-generation logic
+  // a second time, which would risk drifting out of sync with it.
+  const pointRows = [...document.querySelectorAll('#rf-layout-list .layout-point')].map(row=>({
+    badge: row.querySelector('.lp-badge').textContent,
+    label: row.querySelector('.lp-label').textContent,
+    dist: row.querySelector('.lp-dist').textContent
+  }));
+
+  const inputRows = [
+    ['Roof type', roofTypeLabel],
+    ['Building length', $('rf-blen').value ? toLabel(parseLengthInput($('rf-blen').value, rfUnit), rfUnit) : '–'],
+    ['Building width', $('rf-bwid').value ? toLabel(parseLengthInput($('rf-bwid').value, rfUnit), rfUnit) : '–'],
+    ['Degree rise', $('rf-rise').value ? fmt(parseFloat($('rf-rise').value),2)+'°' : '–']
+  ];
+  if(roofType === 'a-roof'){
+    inputRows.push(['Soffit width', $('rf-soffit').value ? toLabel(parseLengthInput($('rf-soffit').value, rfUnit), rfUnit) : '–']);
+    inputRows.push(['Ridge thickness', $('rf-ridget').value ? toLabel(parseLengthInput($('rf-ridget').value, rfUnit), rfUnit) : '–']);
+  } else {
+    inputRows.push(['Left soffit width', $('rf-lsoffit').value ? toLabel(parseLengthInput($('rf-lsoffit').value, rfUnit), rfUnit) : '–']);
+    inputRows.push(['Right soffit width', $('rf-rsoffit').value ? toLabel(parseLengthInput($('rf-rsoffit').value, rfUnit), rfUnit) : '–']);
+    inputRows.push(['Wall thickness', $('rf-wallt').value ? toLabel(parseLengthInput($('rf-wallt').value, rfUnit), rfUnit) : '–']);
+  }
+  inputRows.push(['Rafter size', rafterSizeLabel]);
+  inputRows.push(['On-center', ocLabel]);
+  inputRows.push(['Notch depth', $('rf-seatcut').value ? toLabel(parseLengthInput($('rf-seatcut').value, rfUnit), rfUnit) : '–']);
+  inputRows.push(['Fascia width', $('rf-fascia').value ? toLabel(parseLengthInput($('rf-fascia').value, rfUnit), rfUnit) : '–']);
+
+  const resultRows = [
+    ['Minimum stock length', $('rf-length').textContent],
+    ['Number of rafters', $('rf-count').textContent],
+    ['Plumb cut angle', $('rf-plumb').textContent],
+    ['Level cut angle', $('rf-level').textContent],
+    ['Seat cut, level component length', $('rf-seat-level-len').textContent]
+  ];
+
+  const plainTextLines = [];
+  plainTextLines.push('RAFTER DESIGN');
+  plainTextLines.push('Generated by Shop Assistant — ' + new Date().toLocaleString());
+  plainTextLines.push('');
+  plainTextLines.push('INPUTS');
+  inputRows.forEach(([label,val])=>plainTextLines.push(label + ': ' + val));
+  plainTextLines.push('');
+  plainTextLines.push('RESULTS');
+  resultRows.forEach(([label,val])=>plainTextLines.push(label + ': ' + val));
+  plainTextLines.push('');
+  plainTextLines.push('RAFTER LAYOUT POINTS');
+  pointRows.forEach(p=>plainTextLines.push(p.badge + ' - ' + p.label + ' - ' + p.dist));
+  const plainText = plainTextLines.join('\n');
+
+  const contentHtml = `
+    ${lpTitle('Rafter Design')}
+    ${lpSectionHeading('Inputs')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      ${inputRows.map(([label,val])=>'<tr><td style="'+LP_TD_LABEL+'">'+label+'</td><td style="'+LP_TD_VALUE+'">'+val+'</td></tr>').join('')}
+    </table>
+    ${lpSectionHeading('Results')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      ${resultRows.map(([label,val])=>'<tr><td style="'+LP_TD_LABEL+'">'+label+'</td><td style="'+LP_TD_VALUE+'">'+val+'</td></tr>').join('')}
+    </table>
+    ${lpDiagramSnippet('rf-diagram')}
+    ${lpSectionHeading('Rafter Layout Points')}
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><th style="${LP_TH}">Point</th><th style="${LP_TH}">Description</th><th style="${LP_TH}">Distance</th></tr>
+      ${pointRows.map(p=>'<tr><td style="'+LP_TD_ROW+'">'+p.badge+'</td><td style="'+LP_TD_ROW+'">'+p.label+'</td><td style="'+LP_TD_ROW+'">'+p.dist+'</td></tr>').join('')}
+    </table>
+  `;
+
+  layoutShowPrintOverlay(contentHtml, plainText);
+}
+$('rf-print-btn').addEventListener('click', rfPrintLayout);
 
 $('rf-save-btn').addEventListener('click', ()=>{
   const nameEl = $('rf-save-name');
@@ -9325,6 +9454,88 @@ function stRenderSavedList(){
     list.appendChild(row);
   });
 }
+
+function stPrintLayout(){
+  if(!stEdgePoints.length){
+    alert('Enter total rise and step count to compute a layout first.');
+    return;
+  }
+  const treadThickLabel = $('st-treadthick').options[$('st-treadthick').selectedIndex].text;
+  const numSteps = $('st-numsteps').value;
+
+  // st-note holds its four summary lines as plain text separated by
+  // newlines (each "Label: <b>value</b>", with an optional trailing
+  // warning on the first) -- textContent strips the <b> tags but keeps
+  // the newlines and label/value structure intact, which is exactly the
+  // shape needed here without re-deriving these values a second time.
+  const summaryLines = $('st-note').textContent.split('\n').map(l=>{
+    const idx = l.indexOf(':');
+    return idx===-1 ? [l,''] : [l.slice(0,idx).trim(), l.slice(idx+1).trim()];
+  });
+
+  const inputRows = [
+    ['Tread thickness', treadThickLabel],
+    ['Tread width', $('st-treadwidth').value ? toLabel(parseLengthInput($('st-treadwidth').value, stUnit), stUnit) : '–'],
+    ['Total rise', $('st-totalrise').value ? toLabel(parseLengthInput($('st-totalrise').value, stUnit), stUnit) : '–'],
+    ['Nosing', $('st-nosing').value ? toLabel(parseLengthInput($('st-nosing').value, stUnit), stUnit) : '–'],
+    ['Stringer stock width', $('st-stockwidth').value ? toLabel(parseLengthInput($('st-stockwidth').value, stUnit), stUnit) : '–'],
+    ['Riser thickness', $('st-riserthick').value ? toLabel(parseLengthInput($('st-riserthick').value, stUnit), stUnit) : '–'],
+    ['Number of steps', numSteps]
+  ];
+
+  const plainTextLines = [];
+  plainTextLines.push('STAIRS & STEPS');
+  plainTextLines.push('Generated by Shop Assistant — ' + new Date().toLocaleString());
+  plainTextLines.push('');
+  plainTextLines.push('INPUTS');
+  inputRows.forEach(([label,val])=>plainTextLines.push(label + ': ' + val));
+  plainTextLines.push('');
+  plainTextLines.push('RESULTS');
+  summaryLines.forEach(([label,val])=>plainTextLines.push(label + ': ' + val));
+  plainTextLines.push('');
+  plainTextLines.push('EDGE POINTS (E, F, G, H)');
+  stEdgePoints.forEach(p=>plainTextLines.push(p.label + ' - ' + toLabel(p.dist, stUnit)));
+  plainTextLines.push('');
+  plainTextLines.push('TOP EDGE POINTS (A1, A2, …)');
+  stTopPoints.forEach(p=>plainTextLines.push(p.label + ' - ' + toLabel(p.dist, stUnit)));
+  plainTextLines.push('');
+  plainTextLines.push('BOTTOM EDGE POINTS (B1, B2, …)');
+  stBottomPoints.forEach(p=>plainTextLines.push(p.label + ' - ' + toLabel(p.dist, stUnit)));
+  const plainText = plainTextLines.join('\n');
+
+  const pointTableRows = (pts)=>pts.map(p=>'<tr><td style="'+LP_TD_ROW+'">'+p.label+'</td><td style="'+LP_TD_ROW+'">'+toLabel(p.dist, stUnit)+'</td></tr>').join('');
+
+  const contentHtml = `
+    ${lpTitle('Stairs & Steps')}
+    ${lpSectionHeading('Inputs')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      ${inputRows.map(([label,val])=>'<tr><td style="'+LP_TD_LABEL+'">'+label+'</td><td style="'+LP_TD_VALUE+'">'+val+'</td></tr>').join('')}
+    </table>
+    ${lpSectionHeading('Results')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      ${summaryLines.map(([label,val])=>'<tr><td style="'+LP_TD_LABEL+'">'+label+'</td><td style="'+LP_TD_VALUE+'">'+val+'</td></tr>').join('')}
+    </table>
+    ${lpDiagramSnippet('st-diagram')}
+    ${lpSectionHeading('Edge Points (E, F, G, H)')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      <tr><th style="${LP_TH}">Points</th><th style="${LP_TH}">Distance</th></tr>
+      ${pointTableRows(stEdgePoints)}
+    </table>
+    ${lpSectionHeading('Top Edge Points')}
+    <table style="border-collapse:collapse;width:100%;margin-bottom:8px;">
+      <tr><th style="${LP_TH}">Points</th><th style="${LP_TH}">Distance</th></tr>
+      ${pointTableRows(stTopPoints)}
+    </table>
+    ${lpSectionHeading('Bottom Edge Points')}
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><th style="${LP_TH}">Points</th><th style="${LP_TH}">Distance</th></tr>
+      ${pointTableRows(stBottomPoints)}
+    </table>
+  `;
+
+  layoutShowPrintOverlay(contentHtml, plainText);
+}
+$('st-print-btn').addEventListener('click', stPrintLayout);
 
 $('st-save-btn').addEventListener('click', ()=>{
   const nameEl = $('st-save-name');
@@ -14156,14 +14367,17 @@ document.querySelectorAll('#pms-mode-toggle button').forEach(btn=>{
 
 function calcShellac(){
   const cut = parseFloat($('pms-cut').value);
-  const volQt = parseFloat($('pms-volume').value);
-  if(!cut || !volQt){ $('pms-flakes').textContent='–'; $('pms-alcohol').textContent='–'; return; }
-  const volGal = volQt/4;
+  const volOz = parseFloat($('pms-volume').value);
+  if(!cut || !volOz){ $('pms-flakes').textContent='–'; $('pms-alcohol').textContent='–'; return; }
+  const volGal = volOz/128;
   const flakesOz = cut*volGal*16;
   $('pms-flakes').textContent = fmt(flakesOz,2) + ' oz';
-  $('pms-alcohol').textContent = fmt(volQt,2) + ' qt';
+  $('pms-alcohol').textContent = fmt(volOz,2) + ' oz';
 }
-['pms-cut','pms-volume'].forEach(id=>$(id).addEventListener('input', calcShellac));
+['pms-cut','pms-volume'].forEach(id=>{
+  $(id).addEventListener('input', calcShellac);
+  $(id).addEventListener('change', calcShellac);
+});
 calcShellac();
 
 // Diluting adds only alcohol (no more flakes), so the dry shellac content
