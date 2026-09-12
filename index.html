@@ -18646,6 +18646,34 @@ document.addEventListener('click', e=>{
   if(e.target.closest('[id$="-unit-toggle"]')) saScheduleSave();
 });
 
+// Mobile numeric keypads (inputmode="decimal") omit the "/" character
+// needed to type a fraction like "11 1/2" -- so whenever a card's unit
+// toggle is set to Fractional, its own text fields switch to
+// inputmode="text" (the full keyboard, where "/" is reachable) instead,
+// and switch back to the streamlined numeric keypad for every other
+// unit. This is applied generically to any [id$="-unit-toggle"] group
+// and the text inputs within its own enclosing .card, rather than
+// touching each card's individual unit-toggle handler -- there are 40+
+// of these throughout the app.
+function saApplyInputModeForCard(toggleEl, unit){
+  const card = toggleEl.closest('.card');
+  if(!card) return;
+  const mode = (unit==='fraction') ? 'text' : 'decimal';
+  card.querySelectorAll('input[inputmode="decimal"], input[inputmode="text"]').forEach(inp=>{
+    inp.inputMode = mode;
+  });
+}
+document.addEventListener('click', e=>{
+  const btn = e.target.closest('[id$="-unit-toggle"] button[data-unit]');
+  if(btn) saApplyInputModeForCard(btn.closest('[id$="-unit-toggle"]'), btn.dataset.unit);
+});
+// Initial pass on load, for any card whose unit toggle already starts on
+// Fractional (or is restored to it) before any click ever happens.
+document.querySelectorAll('[id$="-unit-toggle"]').forEach(toggle=>{
+  const activeBtn = toggle.querySelector('button.active');
+  if(activeBtn) saApplyInputModeForCard(toggle, activeBtn.dataset.unit);
+});
+
 async function saRestoreFieldValues(){
   let saved;
   try{
